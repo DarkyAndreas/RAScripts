@@ -398,7 +398,7 @@ function cheevo1S(region) {
 }
 
 function cheevo1SS(region) {
-    return dword(0xffe00c) == Code[region] && HUD[region] == 4 && Room[region] < 0x5f && WeaponMaxAchievementLogic(region, 54)
+    return dword(0xffe00c) == Code[region] && HUD[region] == 4 && Room[region] == 0x52 && shortWeaponMaxAchievementLogic(region, 54)
 }
 
 function cheevo1SSS(region) {
@@ -549,14 +549,14 @@ function LittleEnd(region) {
 }
 
 function Halloween(region) {
-    return unless(dword(0xffe00c) != Code[region]) && once(prev(HUD[region]) == 0 && HUD[region] != 0) && once(SaveCheck[region] == 0 &&
-    Room[region] == 0x0d && word_be(0x0d3bbc) >= 0x1027 && word_be(0x0d3bbc) <= 0x1103) && __ornext(Music[region] == 0x21 ||
+    return unless(dword(0xffe00c) != Code[region]) && never(HUD[region] == 0) && once(SaveCheck[region] == 0 &&
+    Room[region] == 0x0d && word_be(0xfffde9) >= 0x1027 && word_be(0xfffde9) <= 0x1103) && __ornext(Music[region] == 0x21 ||
     Music[region] == 0x1a) && never(HUD[region] == 0)
 }
 
 function Christmas(region) {
-    return unless(dword(0xffe00c) != Code[region]) && prev(HUD[region]) == 0 && HUD[region] != 0 && once(SaveCheck[region] == 0 &&
-    Room[region] == 0x0d && __ornext(word_be(0x0d3bbc) >= 0x1224 || word_be(0x0d3bbc) <= 0x0107)) && __ornext(Music[region] == 0x21 ||
+    return unless(dword(0xffe00c) != Code[region]) && never(HUD[region] == 0) && once(SaveCheck[region] == 0 &&
+    Room[region] == 0x0d && __ornext(word_be(0xfffde9) >= 0x1224 || word_be(0xfffde9) <= 0x0107)) && __ornext(Music[region] == 0x21 ||
     Music[region] == 0x1a) && never(HUD[region] == 0)
 }
 
@@ -602,8 +602,8 @@ function TimeAttackWeapon(region, i) {
 }
 
 function HellCurly(region) {
-    return dword(0xffe00c) == Code[region] && HUD[region] != 0 && Room[region] == 0x41 && prev(StoryCurly[region]) == 0x00
-    && StoryCurly[region] == 0x01
+    return dword(0xffe00c) == Code[region] && HUD[region] != 0 && Room[region] == 0x50 && prev(StoryCurly[region]) == 0x01
+    && StoryCurly[region] == 0x00
 }
 
 function HellPress(region) {
@@ -1241,7 +1241,7 @@ achievement(
 
 achievement(
     title = "Pressed to Nothing", points = 5,
-    description = "Defeat Heavy Press in 'Blood Stained Sanctuary - B2'",
+    description = "Defeat Heavy Press in 'Blood Stained Sanctuary - B3'",
     trigger = HellPress("US") || HellPress("JP")
 )
 
@@ -1344,25 +1344,25 @@ achievement(
 achievement(
     title = "Putting the Curly in {Hell}", points = 10,
     description = "Complete the Time Attack in under 6 minutes",
-    trigger = TimeAttackTime("US", 0x21599) || TimeAttackTime("JP", 0x21599)
+    trigger = TimeAttackTime("US", 21599) || TimeAttackTime("JP", 21599)
 )
 
 achievement(
     title = "Gone Too Soon", points = 10,
     description = "Complete the Time Attack in under 5 minutes",
-    trigger = TimeAttackTime("US", 0x17998) || TimeAttackTime("JP", 0x17998)
+    trigger = TimeAttackTime("US", 17998) || TimeAttackTime("JP", 17998)
 )
 
 achievement(
     title = "Kings Last Sacrifice", points = 25,
     description = "Complete the Time Attack in under 4 minutes",
-    trigger = TimeAttackTime("US", 0x14398) || TimeAttackTime("JP", 0x14398)
+    trigger = TimeAttackTime("US", 14398) || TimeAttackTime("JP", 14398)
 )
 
 achievement(
     title = "Sacred Sue", points = 50,
     description = "Complete the Time Attack in under 3 minutes",
-    trigger = TimeAttackTime("US", 0x10798) || TimeAttackTime("JP", 0x10798)
+    trigger = TimeAttackTime("US", 10798) || TimeAttackTime("JP", 10798)
 )
 
 for i in range (1, 9) {
