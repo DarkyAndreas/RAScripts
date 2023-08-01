@@ -1413,6 +1413,11 @@ function MeasuredValueHUD(region)
     return measured(HUDTime[region], when=dword(0xffe00c) == Code[region])
 }
 
+function priorMeasuredValueHUD(region)
+{
+    return measured(prior(HUDTime[region]), when=dword(0xffe00c) == Code[region])
+}
+
 function MeasuredTally(region)
 {
     return measured(tally(0,prev(IngameTime[region]) != IngameTime[region]), when=dword(0xffe00c) == Code[region])
@@ -1515,7 +1520,7 @@ for i in range (1, 3) {
         start = StartAndSubmitStoryBSS("US", i) || StartAndSubmitStoryBSS("JP", i),
         cancel = CancelStoryBSS("US") || CancelStoryBSS("JP"),
         submit = StartAndSubmitStoryBSS("US", i) || StartAndSubmitStoryBSS("JP", i),
-        value = max_of(MeasuredValueHUD("US"), MeasuredValueHUD("JP")), format="FRAMES", lower_is_better=true, id=0)
+        value = max_of(priorMeasuredValueHUD("US"), priorMeasuredValueHUD("JP")), format="FRAMES", lower_is_better=true, id=0)
 }
 
 leaderboard(
@@ -1524,7 +1529,7 @@ leaderboard(
         start = StartAndSubmitTABSS("US") || StartAndSubmitTABSS("JP"),
         cancel = CancelTABSS("US") || CancelTABSS("JP"),
         submit = StartAndSubmitTABSS("US") || StartAndSubmitTABSS("JP"),
-        value = max_of(MeasuredValue("US"), MeasuredValue("JP")), format="FRAMES", lower_is_better=true, id=0)
+        value = max_of(MeasuredValueHUD("US"), MeasuredValueHUD("JP")), format="FRAMES", lower_is_better=true, id=0)
         
 for i in range (1, 9) {
     leaderboard(
@@ -1533,5 +1538,5 @@ for i in range (1, 9) {
         start = StartAndSubmitTABSSWeapon("US", i) || StartAndSubmitTABSSWeapon("JP", i),
         cancel = CancelTABSS("US") || CancelTABSS("JP"),
         submit = StartAndSubmitTABSSWeapon("US", i) || StartAndSubmitTABSSWeapon("JP", i),
-        value = max_of(MeasuredValue("US"), MeasuredValue("JP")), format="FRAMES", lower_is_better=true, id=0)
+        value = max_of(MeasuredValueHUD("US"), MeasuredValueHUD("JP")), format="FRAMES", lower_is_better=true, id=0)
 }
