@@ -383,7 +383,7 @@ function cheevo0SSSS(region) {
 }
 
 function cheevo1(region, i) {
-if(i==5 || i==8)
+if(i==5 || i==8 || i==9)
     return dword(0xffe00c) == Code[region] && HUD[region] == 4 && Room[region] < 0x5f && WeaponAchievementLogic(region, i)
 else
     return dword(0xffe00c) == Code[region] && HUD[region] == 5 && Room[region] < 0x5f && WeaponAchievementLogic(region, i)
@@ -517,6 +517,12 @@ function cheevo18(region) {
     && UndeadCoreAchievementLogic(region)
 }
 
+function cheevo19(region) {
+    return unless(dword(0xffe00c) != Code[region]) && never(HUD[region] == 0) && never(Room[region] != 0x43)
+    && once(prev(BossHUD[region]) == 0 && BossHUD[region] == 1) && trigger_when(prev(BossHUD[region]) == 1 && BossHUD[region] == 0)
+    && never(prev(QuoteHP[region]) > QuoteHP[region])
+}
+
 function BadEnd(region) {
     return dword(0xffe00c) == Code[region] && HUD[region] != 0 && Room[region] == 0x35 && prev(Music[region]) == 0x19 &&
     Music[region] == 0x1a
@@ -562,13 +568,13 @@ function SpeedEnd(region) {
 function NormalEndPlus(region) {
     return dword(0xffe00c) == Code[region] && HUD[region] != 0 && prior(Room[region]) == 0x47 && prev(Music[region]) == 0x0a &&
     Music[region] == 0x21 && __ornext(Difficulty[region] == 0x00 || Difficulty[region] == 0x02) && QuoteMaxHP[region] == 50
-    && WeaponMaxAchievementLogic(region, 30)
+    && shortWeaponMaxAchievementLogic(region, 30)
 }
 
 function BestEndPlus(region) {
     return dword(0xffe00c) == Code[region] && HUD[region] != 0 && prior(Room[region]) == 0x47 && prev(Music[region]) == 0x00 &&
     Music[region] == 0x21 && __ornext(Difficulty[region] == 0x00 || Difficulty[region] == 0x02) && QuoteMaxHP[region] == 55
-    && WeaponMaxAchievementLogic(region, 54)
+    && shortWeaponMaxAchievementLogic(region, 54)
 }
 
 function NormalEndHard(region) {
@@ -858,6 +864,17 @@ function WeaponMaxAchievementLogic(region, j)
 
     // Concat everything in the array with && (use any_of for ||)
     return all_of(prevWeaponArray, p => p) &&__ornext(any_of(WeaponArray, p => p))
+}
+
+function shortWeaponMaxAchievementLogic(region, j)
+{
+    // Build an array for each Item
+    WeaponArray = []
+    for index in range (0,4) {
+        array_push(WeaponArray, GetMaxWeapon(region, index, j)) }
+
+    // Concat everything in the array with && (use any_of for ||)
+    return __ornext(any_of(WeaponArray, p => p))
 }
 
 function WeaponLevelAchievementLogic(region, j)
@@ -1187,9 +1204,15 @@ achievement(
 )
 
 achievement(
-    title = "Stonecold", points = 10,
-    description = "Defeat the Red Ogre without taking damage and obtain the 'Medal of the Red Ogre'",
+    title = "Stonecold", points = 2,
+    description = "Obtain the 'Medal of the Red Ogre'",
     trigger = cheevo3("US", 0x1f) || cheevo3("JP", 0x1f)
+)
+
+achievement(
+    title = "Bit Based Beast Bites the Byte", points = 10,
+    description = "Defeat the Red Ogre without taking damage",
+    trigger = cheevo19("US") || cheevo19("JP")
 )
 
 achievement(
