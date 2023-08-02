@@ -1390,7 +1390,7 @@ else
 
 function CancelBoss(region)
 {
-    return unless(dword(0xffe00c) != Code[region]) && __ornext(HUD[region] == 0 || QuoteHP[region] >= 0xf000)
+    return unless(dword(0xffe00c) != Code[region]) && __ornext(HUD[region] == 0 || QuoteHP[region] >= 0xf000 || QuoteHP[region] == 0x00)
 }
 
 function SubmitBoss(region, i)
