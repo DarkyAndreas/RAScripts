@@ -218,8 +218,8 @@ BossRoom = {
     16:0x40,
     17:0x41,
     18:0x44,
-    19:0x51,
-    20:0x61,
+    19:0x52,
+    20:0x62,
 }
 
 BossRoomName = {
@@ -241,7 +241,7 @@ BossRoomName = {
     16:"Throne Room",
     17:"The King's Table",
     18:"Black Space",
-    19:"Blood Stained Sanctuary - B2",
+    19:"Blood Stained Sanctuary - B3",
 }
 
 Boss = {
