@@ -145,11 +145,11 @@ Lookup:Boss
 0x57=Ballos
 0x65=Ballos
 
-Lookup:TimeAttack
-0x00= | Normal Difficulty 
-0x02= | Easy Difficulty 
-0x04= | Hard Difficulty 
-0x08= | Time Attack Mode 
+Lookup:Difficulty
+0x00=| Normal Difficulty 
+0x02=| Easy Difficulty 
+0x04=| Hard Difficulty 
+0x08=| Time Attack Mode 
 *=
 
 Lookup:Char
@@ -171,13 +171,13 @@ Display:
 ?1=1S0xXffe00c=1163281227_0xH0bdac0!=0_O:0xX0d3bb0=71_p0xX0d3bb0=71S0xXffe00c=1247167307_0xH0bf39c!=0_O:0xX0d5498=71_p0xX0d5498=71?@Char(A:0xXffe00c_B:1163281227_M:0xS0bdae8)@Char(A:0xXffe00c_B:1247167307_M:0xS0bf3c4) is flying through the Clouds, the adventure is finally over...but at what cost?
 //US Display
 ?0xXffe00c=1163281227_0xH0bdac0!=0_0xH0bd300=8_0xX0d3bbc=15?Quote has completed the Time Attack Mode with a Time of @Frames(0xX0d3bac)
-?0xXffe00c=1163281227_0xH0bdac0!=0_I:0xX0d7bd8*20_M:0xH0d7c5c=0?@Char(0xS0bdae8) is currently wandering through @Room(0xX0d3bb0) @TimeAttack(Q:0xX0d3bb0!=95_M:0xH0bd300)| @Value(0x0bdb64)/@Value(0x0bdb68)❤️ | @Frames(0xX0bdabc)⏰
-?0xXffe00c=1163281227_0xH0bdac0!=0_0xX0d8edc=1?@Char(0xS0bdae8) is currently fighting against @Boss(0xX0d3bb0) in @Room(0xX0d3bb0) with a @Weapon(I:0xX0d7bd8*20_M:0xH0d7c5c) on Lv.@Value(I:0xX0d7bd8*20_M:0xH0d7c60) in hand @TimeAttack(Q:0xX0d3bb0!=95_M:0xH0bd300)| @Value(0x0bdb64)/@Value(0x0bdb68)❤️ | @Frames(0xX0bdabc)⏰
-?0xXffe00c=1163281227_0xH0bdac0!=0?@Char(0xS0bdae8) is currently wandering through @Room(0xX0d3bb0) with a @Weapon(I:0xX0d7bd8*20_M:0xH0d7c5c) on Lv.@Value(I:0xX0d7bd8*20_M:0xH0d7c60) in hand @TimeAttack(Q:0xX0d3bb0!=95_M:0xH0bd300)| @Value(0x0bdb64)/@Value(0x0bdb68)❤️ | @Frames(0xX0bdabc)⏰
+?0xXffe00c=1163281227_0xH0bdac0!=0_I:0xX0d7bd8*20_M:0xH0d7c5c=0?@Char(0xS0bdae8) is currently wandering through @Room(0xX0d3bb0) @Difficulty(Q:0xX0d3bb0!=95_M:0xH0bd300)| @Value(0x0bdb64)/@Value(0x0bdb68)❤️ | @Frames(0xX0bdabc)⏰
+?0xXffe00c=1163281227_0xH0bdac0!=0_0xX0d8edc=1?@Char(0xS0bdae8) is currently fighting against @Boss(0xX0d3bb0) in @Room(0xX0d3bb0) with a @Weapon(I:0xX0d7bd8*20_M:0xH0d7c5c) on Lv.@Value(I:0xX0d7bd8*20_M:0xH0d7c60) in hand @Difficulty(Q:0xX0d3bb0!=95_M:0xH0bd300)| @Value(0x0bdb64)/@Value(0x0bdb68)❤️ | @Frames(0xX0bdabc)⏰
+?0xXffe00c=1163281227_0xH0bdac0!=0?@Char(0xS0bdae8) is currently wandering through @Room(0xX0d3bb0) with a @Weapon(I:0xX0d7bd8*20_M:0xH0d7c5c) on Lv.@Value(I:0xX0d7bd8*20_M:0xH0d7c60) in hand @Difficulty(Q:0xX0d3bb0!=95_M:0xH0bd300)| @Value(0x0bdb64)/@Value(0x0bdb68)❤️ | @Frames(0xX0bdabc)⏰
 //JP Display
 ?0xXffe00c=1247167307_0xH0bf39c!=0_0xH0bea20=8_0xX0d548c=15?Quote has completed the Time Attack Mode with a Time of @Frames(0xX0d5488)
-?0xXffe00c=1247167307_0xH0bf39c!=0_I:0xX0d93e8*20_M:0xH0d946c=0?@Char(0xS0bf3c4) is currently wandering through @Room(0xX0d5498) @TimeAttack(Q:0xX0d5498!=95_M:0xH0bea20)| @Value(0x0bf440)/@Value(0x0bf444)❤️ | @Frames(0xX0bf398)⏰
-?0xXffe00c=1163281227_0xH0bdac0!=0_0xX0da6ec=1?@Char(0xS0bf3c4) is currently fighting against @Boss(0xX0d5498) in @Room(0xX0d5498) with a @Weapon(I:0xX0d93e8*20_M:0xH0d946c) on Lv.@Value(I:0xX0d93e8*20_M:0xH0d9470) in hand @TimeAttack(Q:0xX0d5498!=95_M:0xH0bea20)| @Value(0x0bf440)/@Value(0x0bf444)❤️ | @Frames(0xX0bf398)⏰
-?0xXffe00c=1247167307_0xH0bf39c!=0?@Char(0xS0bf3c4) is currently wandering through @Room(0xX0d5498) with a @Weapon(I:0xX0d93e8*20_M:0xH0d946c) on Lv.@Value(I:0xX0d93e8*20_M:0xH0d9470) in hand @TimeAttack(Q:0xX0d5498!=95_M:0xH0bea20)| @Value(0x0bf440)/@Value(0x0bf444)❤️ | @Frames(0xX0bf398)⏰
+?0xXffe00c=1247167307_0xH0bf39c!=0_I:0xX0d93e8*20_M:0xH0d946c=0?@Char(0xS0bf3c4) is currently wandering through @Room(0xX0d5498) @Difficulty(Q:0xX0d5498!=95_M:0xH0bea20)| @Value(0x0bf440)/@Value(0x0bf444)❤️ | @Frames(0xX0bf398)⏰
+?0xXffe00c=1163281227_0xH0bdac0!=0_0xX0da6ec=1?@Char(0xS0bf3c4) is currently fighting against @Boss(0xX0d5498) in @Room(0xX0d5498) with a @Weapon(I:0xX0d93e8*20_M:0xH0d946c) on Lv.@Value(I:0xX0d93e8*20_M:0xH0d9470) in hand @Difficulty(Q:0xX0d5498!=95_M:0xH0bea20)| @Value(0x0bf440)/@Value(0x0bf444)❤️ | @Frames(0xX0bf398)⏰
+?0xXffe00c=1247167307_0xH0bf39c!=0?@Char(0xS0bf3c4) is currently wandering through @Room(0xX0d5498) with a @Weapon(I:0xX0d93e8*20_M:0xH0d946c) on Lv.@Value(I:0xX0d93e8*20_M:0xH0d9470) in hand @Difficulty(Q:0xX0d5498!=95_M:0xH0bea20)| @Value(0x0bf440)/@Value(0x0bf444)❤️ | @Frames(0xX0bf398)⏰
  
 //RP by DarkyAndreas
