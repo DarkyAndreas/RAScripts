@@ -1,0 +1,183 @@
+Format:Value
+FormatType=VALUE
+
+Format:Frames
+FormatType=FRAMES
+
+Lookup:Weapon
+0x00=nothing
+0x01=Snake
+0x02=Polar Star
+0x03=Fireball
+0x04=Machine Gun
+0x05=Missile Launcher
+0x07=Bubbline
+0x09=Blade
+0x0a=Super Missile
+0x0c=Nemesis
+0x0d=Spur
+
+Lookup:Room
+*=an unknown location
+0x01=Arthur's House
+0x02=Egg Corridor
+0x03=Egg No.00
+0x04=Egg No.06
+0x05=Egg Observation Room
+0x06=Bushlands
+0x07=Santa's House
+0x08=Chako's House
+0x09=Labyrinth I
+0x0a=Sand Zone
+0x0b=Mimiga Village
+0x0c=First Cave
+0x0d=Start Point
+0x0e=Shack
+0x0f=Reservoir
+0x10=Cemetery
+0x11=Yamashita Farm
+0x12=Shelter
+0x13=Assembly Hall
+0x14=Mimiga Village Save Point
+0x15=Side Room
+0x16=Cthulhu's Abode
+0x17=Egg No. 01
+0x18=Arthur's House
+0x19=Power Supply Room
+0x1a=Bushlands Save Point
+0x1b=Execution Chamber
+0x1c=Gum
+0x1d=Sand Zone Residence
+0x1e=Bushlands Hut
+0x1f=Main Artery
+0x20=Small Room
+0x21=Jenka's House
+0x22=Deserted House
+0x23=Warehouse
+0x24=Jenka's House
+0x25=Sand Zone
+0x26=Labyrinth H
+0x27=Labyrinth W
+0x28=Camp
+0x29=Clinic Ruins
+0x2a=Labyrinth Shop
+0x2b=Labyrinth B
+0x2c=Boulder Chamber
+0x2d=Labyrinth M
+0x2e=Dark Place
+0x2f=Core
+0x30=Waterway
+0x31=Egg Corridor?
+0x32=Cthulhu's Abode?
+0x33=Egg Observation Room?
+0x34=Egg No. 00
+0x35=Outer Wall
+0x36=Side Room
+0x37=Storehouse
+0x38=Plantation
+0x39=Jail No. 1
+0x3a=Hideout
+0x3b=Rest Area
+0x3c=Plantation Teleporter
+0x3d=Jail No. 1
+0x3e=Balcony
+0x3f=Final Cave
+0x40=Throne Room
+0x41=The King's Table
+0x42=Prefab Building
+0x43=Last Cave (Hidden)
+0x44=Black Space
+0x45=Little House
+0x46=Balcony
+0x47=the Clouds on his way to an Ending
+0x48=Intro
+0x49=Waterway Cabin
+0x4a=Credits
+0x4b=Credits
+0x4c=Credits
+0x4d=Credits
+0x4e=Credits
+0x4f=Prefab Building
+0x50=Blood Stained Sanctuary - B1
+0x51=Blood Stained Sanctuary - B2
+0x52=Blood Stained Sanctuary - B3
+0x53=Storage
+0x54=Passage
+0x55=Passage?
+0x56=Statue Chamber
+0x57=Seal Chamber
+0x58=Corridor
+0x59=Credits
+0x5a=Hermit Gunsmith
+0x5c=Seal Chamber
+0x5d=Credits
+0x5e=Clock Room
+0x5f=Start Point of the Time Attack
+0x60=Blood Stained Sanctuary - B1
+0x61=Blood Stained Sanctuary - B2
+0x62=Blood Stained Sanctuary - B3
+0x63=Passage
+0x64=Corridor
+0x65=Seal Chamber
+0x66=Statue Chamber
+
+Lookup:Boss
+0x0e=Balrog
+0x02=Igor
+0x19=Balrog
+0x1c=Balfrog
+0x1d=Curly
+0x0a=Omega
+0x23=Toroko +
+0x29=Puu Black
+0x27=Monster X
+0x2c=Balrog
+0x2f=Core
+0x1f=Ironhead
+0x33=Sisters
+0x53=Ma Pignon
+0x43=Red Ogre
+0x40=Misery
+0x41=Doctor
+0x44=Undead Core
+0x51=Heavy Press
+0x61=Heavy Press
+0x57=Ballos
+0x65=Ballos
+
+Lookup:TimeAttack
+0x00= | Normal Difficulty 
+0x02= | Easy Difficulty 
+0x04= | Hard Difficulty 
+0x08= | Time Attack Mode 
+*=
+
+Lookup:Char
+0x01=Mimiga?
+0x00=Quote
+*=
+
+Display:
+?N:0xXffe00c!=1163281227_0xXffe00c!=1247167307?Quote is wandering through the DSi Home Menu
+?1=1S0xXffe00c=1163281227_0xX0d3bb0=72S0xXffe00c=1247167307_0xX0d5498=72?Currently on the Title Screen
+?1=1S0xXffe00c=1163281227_0xH0bdac0=0S0xXffe00c=1247167307_0xH0bf39c=0?Currently on the Title Screen
+?1=1S0xXffe00c=1163281227_0xH0bdac0!=0_0xX0d3bbc=3S0xXffe00c=1247167307_0xH0bf39c!=0_0xX0d548c=3?@Char(A:0xXffe00c_B:1163281227_M:0xS0bdae8)@Char(A:0xXffe00c_B:1247167307_M:0xS0bf3c4) has died...will they try again?
+?1=1S0xXffe00c=1163281227_0xH0bdac0!=0_0xX0d3bbc=26S0xXffe00c=1247167307_0xH0bf39c!=0_0xX0d548c=26?@Char(A:0xXffe00c_B:1163281227_M:0xS0bdae8)@Char(A:0xXffe00c_B:1247167307_M:0xS0bf3c4) flew away, there is no one left to save the island
+?1=1S0xXffe00c=1163281227_0xH0bdac0!=0_O:0xX0d3bbc=35_p0xX0d3bbc=35S0xXffe00c=1247167307_0xH0bf39c!=0_O:0xX0d548c=35_p0xX0d548c=35?@Char(A:0xXffe00c_B:1163281227_M:0xS0bdae8)@Char(A:0xXffe00c_B:1247167307_M:0xS0bf3c4) is watching the island fall to it's despair...is that really what he wanted?
+?1=1S0xXffe00c=1163281227_0xH0bdac0!=0_0xM0d7e7e=1_O:0xX0d3bbc=33_p0xX0d3bbc=33S0xXffe00c=1247167307_0xH0bf39c!=0_0xM0d968e=1_O:0xX0d548c=33_p0xX0d548c=33?Quote broke the hellish curse and is now enjoying the credits
+?1=1S0xXffe00c=1163281227_0xH0bdac0!=0_O:0xX0d3bbc=33_p0xX0d3bbc=33S0xXffe00c=1247167307_0xH0bf39c!=0_O:0xX0d548c=33_p0xX0d548c=33?@Char(A:0xXffe00c_B:1163281227_M:0xS0bdae8)@Char(A:0xXffe00c_B:1247167307_M:0xS0bf3c4) is currently watching the Credits roll...but was this really the best he could do?
+?1=1S0xXffe00c=1163281227_0xH0bdac0=13_0xM0d7e7e=1S0xXffe00c=1247167307_0xH0bf39c=13_0xM0d968e=1?Thank you for playing! ~The End~
+?1=1S0xXffe00c=1163281227_0xH0bdac0!=0_O:0xX0d3bb0=71_p0xX0d3bb0=71_O:p0xX0d3bb0=92_0xM0d7e7e=1S0xXffe00c=1247167307_0xH0bf39c!=0_O:0xX0d5498=71_p0xX0d5498=71_O:p0xX0d5498=92_0xM0d968e=1?@Char(A:0xXffe00c_B:1163281227_M:0xS0bdae8)@Char(A:0xXffe00c_B:1247167307_M:0xS0bf3c4) is flying through the Clouds, the adventure is finally over!
+?1=1S0xXffe00c=1163281227_0xH0bdac0!=0_O:0xX0d3bb0=71_p0xX0d3bb0=71S0xXffe00c=1247167307_0xH0bf39c!=0_O:0xX0d5498=71_p0xX0d5498=71?@Char(A:0xXffe00c_B:1163281227_M:0xS0bdae8)@Char(A:0xXffe00c_B:1247167307_M:0xS0bf3c4) is flying through the Clouds, the adventure is finally over...but at what cost?
+//US Display
+?0xXffe00c=1163281227_0xH0bdac0!=0_0xH0bd300=8_0xX0d3bbc=15?Quote has completed the Time Attack Mode with a Time of @Frames(0xX0d3bac)
+?0xXffe00c=1163281227_0xH0bdac0!=0_I:0xX0d7bd8*20_M:0xH0d7c5c=0?@Char(0xS0bdae8) is currently wandering through @Room(0xX0d3bb0) @TimeAttack(Q:0xX0d3bb0!=95_M:0xH0bd300)| @Value(0x0bdb64)/@Value(0x0bdb68)❤️ | @Frames(0xX0bdabc)⏰
+?0xXffe00c=1163281227_0xH0bdac0!=0_0xX0d8edc=1?@Char(0xS0bdae8) is currently fighting against @Boss(0xX0d3bb0) in @Room(0xX0d3bb0) with a @Weapon(I:0xX0d7bd8*20_M:0xH0d7c5c) on Lv.@Value(I:0xX0d7bd8*20_M:0xH0d7c60) in hand @TimeAttack(Q:0xX0d3bb0!=95_M:0xH0bd300)| @Value(0x0bdb64)/@Value(0x0bdb68)❤️ | @Frames(0xX0bdabc)⏰
+?0xXffe00c=1163281227_0xH0bdac0!=0?@Char(0xS0bdae8) is currently wandering through @Room(0xX0d3bb0) with a @Weapon(I:0xX0d7bd8*20_M:0xH0d7c5c) on Lv.@Value(I:0xX0d7bd8*20_M:0xH0d7c60) in hand @TimeAttack(Q:0xX0d3bb0!=95_M:0xH0bd300)| @Value(0x0bdb64)/@Value(0x0bdb68)❤️ | @Frames(0xX0bdabc)⏰
+//JP Display
+?0xXffe00c=1247167307_0xH0bf39c!=0_0xH0bea20=8_0xX0d548c=15?Quote has completed the Time Attack Mode with a Time of @Frames(0xX0d5488)
+?0xXffe00c=1247167307_0xH0bf39c!=0_I:0xX0d93e8*20_M:0xH0d946c=0?@Char(0xS0bf3c4) is currently wandering through @Room(0xX0d5498) @TimeAttack(Q:0xX0d5498!=95_M:0xH0bea20)| @Value(0x0bf440)/@Value(0x0bf444)❤️ | @Frames(0xX0bf398)⏰
+?0xXffe00c=1163281227_0xH0bdac0!=0_0xX0da6ec=1?@Char(0xS0bf3c4) is currently fighting against @Boss(0xX0d5498) in @Room(0xX0d5498) with a @Weapon(I:0xX0d93e8*20_M:0xH0d946c) on Lv.@Value(I:0xX0d93e8*20_M:0xH0d9470) in hand @TimeAttack(Q:0xX0d5498!=95_M:0xH0bea20)| @Value(0x0bf440)/@Value(0x0bf444)❤️ | @Frames(0xX0bf398)⏰
+?0xXffe00c=1247167307_0xH0bf39c!=0?@Char(0xS0bf3c4) is currently wandering through @Room(0xX0d5498) with a @Weapon(I:0xX0d93e8*20_M:0xH0d946c) on Lv.@Value(I:0xX0d93e8*20_M:0xH0d9470) in hand @TimeAttack(Q:0xX0d5498!=95_M:0xH0bea20)| @Value(0x0bf440)/@Value(0x0bf444)❤️ | @Frames(0xX0bf398)⏰
+ 
+//RP by DarkyAndreas
