@@ -1,0 +1,59 @@
+Format:Value
+FormatType=VALUE
+
+Lookup:Enemy
+0x00,0x01,0x02=Daddy Dearest
+0x03=Girlfriend
+0x04,0x05=Skid & Pump
+0x06,0x10=Monster
+0x07,0x08,0x09=Pico
+0x0a,0x0b,0x0c=Mommy Mearest
+0x0e,0x0f=Daddy Dearest & Mommy Mearest
+
+Lookup:Song
+0x00=Bopeebo
+0x01=Fresh
+0x02=Dad Battle
+0x03=Tutorial
+0x04=Spookeez
+0x05=South
+0x06=Illusion
+0x07=Pico
+0x08=Philly Nice
+0x09=Blammed
+0x0a=Satin Panties
+0x0b=High
+0x0c=Milf
+0x0e=Cocoa
+0x0f=Eggnog
+0x10=Hallucination
+
+Lookup:Difficulty
+0x00=Chill
+0x01=Basic
+0x02=Neo
+
+Lookup:Mode
+0x00=Normal
+0x01=Swap
+0x02=Two Player
+
+Lookup:ScreenID
+0x00=PS1 Starting Screen
+0x01=Title Screen
+0x02=Main Menu
+0x03=Story Mode Menu
+0x04=Freeplay Menu
+0x05=Credits
+0x06=Options Menu
+0x07=Loading Screen
+
+Display:
+?0xH1d6b74!=7?Currently vibing and chilling to the Music of the @ScreenID(0xH1d6b75)
+?R:0xH1d6b74!=7_R:0x 1d6d58>0_N:d0x 1d6d58>0_0x 1d6d58=0.1.?Boyfriend got blue balled...will he try again?
+?R:0xH1d6b74!=7_R:d0x 1d6d58>0x 1d6d58_R:d0x 1d6d5a>0x 1d6d5a_N:d0xX1d6d20>4026531840_0xX1d6d20<4026531840.1._0x 1d6d5a>=10?Rapping it out against @Enemy(0xH1d6ca0) in a SICK Battle of @Song(0xH1d6ca0) while still having a full Combo | @Difficulty(0xH1d6b91) Difficulty | @Mode(0xH1d6c5c) Mode | @Value(0x 1d6d5a) Combo |  @Value(0xX1d6d60*10) Points
+?R:0xH1d6b74!=7_R:d0x 1d6d58>0x 1d6d58_R:d0x 1d6d5a>0x 1d6d5a_N:d0xX1d6d20>4026531840_0xX1d6d20<4026531840.1.?Rapping it out against @Enemy(0xH1d6ca0) in a SICK Battle of @Song(0xH1d6ca0) while still having a full Combo | @Difficulty(0xH1d6b91) Difficulty | @Mode(0xH1d6c5c) Mode |  @Value(0xX1d6d60*10) Points
+?0xH1d6b74=7_0x 1d6d5a>=10?Rapping it out against @Enemy(0xH1d6ca0) in a SICK Battle of @Song(0xH1d6ca0) | @Difficulty(0xH1d6b91) Difficulty | @Mode(0xH1d6c5c) Mode | @Value(0x 1d6d5a) Combo | Score: @Value(0xX1d6d60*10)
+?0xH1d6b74=7?Rapping it out against @Enemy(0xH1d6ca0) in a SICK Battle of @Song(0xH1d6ca0) | @Difficulty(0xH1d6b91) Difficulty | @Mode(0xH1d6c5c) Mode | Score: @Value(0xX1d6d60*10)
+ 
+//RP by DarkyAndreas
