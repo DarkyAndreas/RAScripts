@@ -271,7 +271,7 @@ BossTitle = {
     2:"Not So Cute Rabbit",
     3:"Restricting the Robot Revolution",
     4:"Frogs Eradication",
-    5:"Small Malfunction",
+    5:"{Small Malfunction}",
     6:"Weird Looking Groundhog",
     7:"Down The Rabbit Hole",
     8:"Popped Like a Bubble",
@@ -283,7 +283,7 @@ BossTitle = {
     14:"Funky Fungi",
     15:"The Beast Who’s Missing a Fang",
     16:"The Princess’s Forceful Sleep",
-    17:"Call the ambulance...but not for me!",
+    17:"Call the Ambulance...But Not for Me!",
     18:"Zeitdruck against the Zombified Zentrum",
 }
 
@@ -484,7 +484,8 @@ function cheevo12(region) {
 function cheevo13(region) {
     return unless(dword(0xffe00c) != Code[region]) && never(HUD[region] == 0) && never(Room[region] != 0x02)
     && once(prev(BossHUD[region]) == 0 && BossHUD[region] == 1) && trigger_when(prev(BossHUD[region]) == 1 && BossHUD[region] == 0)
-    && never(prev(BossHP[region]) != BossHP[region] && __ornext(prev(BossY[region]) == BossY[region] || prev(BossY[region]) == BossY[region]))
+    && never(prev(BossX[region]) == BossX[region] && prev(BossY[region]) == BossY[region] && prev(Music[region]) == 4
+    && prev(BossHP[region]) != BossHP[region])
 }
 
 function cheevo14(region) {
@@ -508,7 +509,8 @@ function cheevo16(region) {
 function cheevo17(region) {
     return unless(dword(0xffe00c) != Code[region]) && never(HUD[region] == 0) && never(Room[region] != 0x2f)
     && once(prev(BossHUD[region]) == 0 && BossHUD[region] == 1) && trigger_when(prev(BossHUD[region]) == 1 && BossHUD[region] == 0)
-    && never(repeated(10, prev(GroundCheck[region]) == 0x01 && GroundCheck[region] == 0x00 && prev(InputCheck[region]) == 0x00 && InputCheck[region] == 0x01 && QuoteYSpeed[region] > 0xf0000000))
+    && never(repeated(10, prev(GroundCheck[region]) == 0x01 && GroundCheck[region] == 0x00 && prev(InputCheck[region]) == 0x00
+    && InputCheck[region] == 0x01 && QuoteYSpeed[region] > 0xf0000000))
 }
 
 function cheevo18(region) {
@@ -597,8 +599,9 @@ function TimeAttackTime(region, i) {
 }
 
 function TimeAttackWeapon(region, i) {
-    return unless(dword(0xffe00c) != Code[region]) && HUD[region] != 0 && never(Difficulty[region] != 0x08) && once(prev(Room[region]) == 0x5f && Room[region] == 0x60) && trigger_when(Music[region] == 0x0f)
-    && never(WeaponSlot1[region] != HellWeaponNumb[i]) && never(WeaponSlot2[region] != 0)
+    return unless(dword(0xffe00c) != Code[region]) && HUD[region] != 0 && never(Difficulty[region] != 0x08) && once(prev(Room[region]) == 0x5f
+    && Room[region] == 0x60) && trigger_when(Music[region] == 0x0f) && never(WeaponSlot1[region] != HellWeaponNumb[i])
+    && never(WeaponSlot2[region] != 0)
 }
 
 function HellCurly(region) {
@@ -753,10 +756,12 @@ function Curly(region, index)
 {
     // Code for the pointer conditions
     if (region == "US") {
-    return never(dword(tbyte(0x0bdba8 + (index*4)) + 0x28) == 0x7a && prev(dword(tbyte(0x0bdba8 + (index*4)) + 0x40)) == 0x3e8 && dword(tbyte(0x0bdba8 + (index*4)) + 0x40) != 0x3e8)
+    return never(dword(tbyte(0x0bdba8 + (index*4)) + 0x28) == 0x7a && prev(dword(tbyte(0x0bdba8 + (index*4)) + 0x40)) == 0x3e8
+    && dword(tbyte(0x0bdba8 + (index*4)) + 0x40) != 0x3e8)
     }
     else if (region == "JP") {
-    return never(dword(tbyte(0x0bf484 + (index*4)) + 0x28) == 0x7a && prev(dword(tbyte(0x0bf484 + (index*4)) + 0x40)) == 0x3e8 && dword(tbyte(0x0bf484 + (index*4)) + 0x40) != 0x3e8)
+    return never(dword(tbyte(0x0bf484 + (index*4)) + 0x28) == 0x7a && prev(dword(tbyte(0x0bf484 + (index*4)) + 0x40)) == 0x3e8
+    && dword(tbyte(0x0bf484 + (index*4)) + 0x40) != 0x3e8)
     }
 }
 
@@ -1041,7 +1046,7 @@ achievement(
 
 for i in range (1, 18) {
 achievement(
-    title = format(BossTitle[i]), points = 5,
+    title = BossTitle[i], points = 5,
     description = format("Defeat {0} in {1}", Boss[i], BossRoomName[i]),
     trigger = cheevo2("US", i) || cheevo2("JP", i)
 )
@@ -1306,13 +1311,13 @@ achievement(
 )
 
 achievement(
-    title = "Are You Giving up Already?", points = 10,
+    title = "Are You Giving up Already?", points = 25,
     description = "Achieve the Normal Ending on Hard Difficulty",
     trigger = NormalEndHard("US") || NormalEndHard("JP")
 )
 
 achievement(
-    title = "Tight Escape", points = 10,
+    title = "Tight Escape", points = 50,
     description = "Achieve the Best Ending on Hard Difficulty",
     trigger = BestEndHard("US") || BestEndHard("JP")
 )
@@ -1383,9 +1388,11 @@ achievement(
 function StartBoss(region, i, j)
 {
     if(i==19)
-    return dword(0xffe00c) == Code[region] && Difficulty[region] == DifficultyType[j] && __ornext(Room[region] == BossRoom[i] || Room[region] == BossRoom[i+1]) && prev(BossHUD[region]) == 0 && BossHUD[region] == 1
+    return dword(0xffe00c) == Code[region] && Difficulty[region] == DifficultyType[j] && __ornext(Room[region] == BossRoom[i]
+    || Room[region] == BossRoom[i+1]) && prev(BossHUD[region]) == 0 && BossHUD[region] == 1
 else
-    return dword(0xffe00c) == Code[region] && Difficulty[region] == DifficultyType[j] && Room[region] == BossRoom[i] && prev(BossHUD[region]) == 0 && BossHUD[region] == 1
+    return dword(0xffe00c) == Code[region] && Difficulty[region] == DifficultyType[j] && Room[region] == BossRoom[i]
+    && prev(BossHUD[region]) == 0 && BossHUD[region] == 1
 }
 
 function CancelBoss(region)
@@ -1425,7 +1432,8 @@ function MeasuredTally(region)
 
 function StartEnding(region, i, j)
 {
-    return unless(dword(0xffe00c) != Code[region]) && never(Difficulty[region] != DifficultyType[j]) && never(SaveCheck[region] == 1) && once(once(prev(HUD[region]) == 0 && HUD[region] != 0) && Room[region] == 0x0d)
+    return unless(dword(0xffe00c) != Code[region]) && never(Difficulty[region] != DifficultyType[j]) && never(SaveCheck[region] == 1)
+    && once(once(prev(HUD[region]) == 0 && HUD[region] != 0) && Room[region] == 0x0d)
 }
 
 function StartAndSubmitEnding(region, i, j)
@@ -1433,9 +1441,11 @@ function StartAndSubmitEnding(region, i, j)
     if(i==1) {
     return dword(0xffe00c) == Code[region] && Difficulty[region] == DifficultyType[j] && HUD[region] != 0 && Music[region] == 0x1a }
     else if(i==2) {
-    return dword(0xffe00c) == Code[region] && Difficulty[region] == DifficultyType[j] && HUD[region] != 0 && Music[region] == 0x21 && EndingCheck[region] == 0x00 }
+    return dword(0xffe00c) == Code[region] && Difficulty[region] == DifficultyType[j] && HUD[region] != 0 && Music[region] == 0x21
+    && EndingCheck[region] == 0x00 }
     else if(i==3) {
-    return dword(0xffe00c) == Code[region] && Difficulty[region] == DifficultyType[j] && HUD[region] != 0 && Music[region] == 0x21 && EndingCheck[region] == 0x01 }
+    return dword(0xffe00c) == Code[region] && Difficulty[region] == DifficultyType[j] && HUD[region] != 0 && Music[region] == 0x21
+    && EndingCheck[region] == 0x01 }
 }
 
 function CancelEnding(region)
@@ -1455,7 +1465,8 @@ function SubmitEnding(region, i)
 
 function StartAndSubmitStoryBSS(region, j)
 {
-    return dword(0xffe00c) == Code[region] && Difficulty[region] == DifficultyType[j] && HUD[region] != 0 && prior(Room[region]) == 0x47 && prev(Music[region]) == 0x00 && Music[region] == 0x21
+    return dword(0xffe00c) == Code[region] && Difficulty[region] == DifficultyType[j] && HUD[region] != 0 && prior(Room[region]) == 0x47
+    && prev(Music[region]) == 0x00 && Music[region] == 0x21
 }
 
 function CancelStoryBSS(region)
@@ -1470,7 +1481,8 @@ function StartAndSubmitTABSS(region)
 
 function StartAndSubmitTABSSWeapon(region, i)
 {
-    return dword(0xffe00c) == Code[region] && Difficulty[region] == 0x08 && HUD[region] != 0 && Music[region] == 0x0f && WeaponSlot1[region] == HellWeaponNumb[i] && WeaponSlot2[region] == 0
+    return dword(0xffe00c) == Code[region] && Difficulty[region] == 0x08 && HUD[region] != 0 && Music[region] == 0x0f
+    && WeaponSlot1[region] == HellWeaponNumb[i] && WeaponSlot2[region] == 0
 }
 
 function CancelTABSS(region)
