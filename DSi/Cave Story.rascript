@@ -150,8 +150,8 @@ TextState = {
 }
 
 StoryCurlyDeath = {
-    "US": bit2(0x0d7dee),
-    "JP": bit2(0x0d95fe),
+    "US": bit3(0x0d7dee),
+    "JP": bit3(0x0d95fe),
 }
 
 StoryDoctor2 = {
