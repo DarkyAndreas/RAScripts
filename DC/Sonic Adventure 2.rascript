@@ -222,8 +222,8 @@ function upgradeLogic(i)
 for i in range (0, 3) {
     for j in range (0, length(stageNumb[i])-1) {
         achievement(
-            title = format("{0} (copy)", stageName[i][j]), points = 3,
-            description = format("{0} (copy)", stageDesc[i][j]),
+            title = format("{0}", stageName[i][j]), points = 3,
+            description = format("{0}", stageDesc[i][j]),
             trigger =  state == 16 && stage == stageNumb[i][j] && story == (i+1)%4
                     && prev(stageclear) == 1 && stageclear == 0
         )
@@ -234,8 +234,8 @@ for i in range (0, 3) {
                         + byte(stageRank[i][j] + 1)/byte(stageRank[i][j] + 1) + byte(stageRank[i][j] + 2)/byte(stageRank[i][j] + 2)
                         + byte(stageRank[i][j] + 3)/byte(stageRank[i][j] + 3) + byte(stageRank[i][j] + 4)/byte(stageRank[i][j] + 4) + 0
             achievement(
-                title = format("{0} Aced (copy)", stageName[i][j]), points = 10,
-                description = format("Get an A rating on every mission. (copy)"),
+                title = format("{0} Aced", stageName[i][j]), points = 10,
+                description = format("Get an A rating on every mission."),
                 trigger =  measured(always_true(), when=ingame <= 2) && state == 16 && stage == stageNumb[i][j]
                         && prev(ranks(i, j, 5)) < 5 && measured(ranks(i, j, 5) == 5)
             )
@@ -249,21 +249,21 @@ for i in range (0, 3) {
     }
     if (i != 3) {
         achievement(
-            title = format("{0} (copy)", storyName[i][0]), points = 10 + (i/2 * 15),
+            title = format("{0}", storyName[i][0]), points = 10 + (i/2 * 15),
             description = format("Complete {0} Story {1}", storyDesc[i][0], storyDesc[i][1]),
             trigger =  prior(state) == 19 && state == 0 && stageloaded == storyNumb[i][0] && story == i+1
                     && prev(stageclear) == 0 && stageclear == 1
         )
         achievement(
-                title = format("{0} (copy)", emblemName[i][0]), points = 25,
-                description = format("{0} (copy)", emblemDesc[i][0]),
+                title = format("{0}", emblemName[i][0]), points = 25,
+                description = format("{0}", emblemDesc[i][0]),
                 trigger =  measured(always_true(), when=ingame <= 2) && state == 16 && emblemLogic(i)
             )
     }
     else {
         achievement(
-            title = format("Green Hill Aced (copy)"), points = 2,
-            description = format("Get A rating on Green Hill. (copy)", stageDesc[i][0]),
+            title = format("Green Hill Aced"), points = 2,
+            description = format("Get A rating on Green Hill.", stageDesc[i][0]),
             trigger =  state == 16 && stage == stageNumb[i][0] && story == (i+1)%4
                     && dword(tbyte(tbyte(0xe82204) + 0x2C) +0x00) == 0x0004000f
         )
@@ -272,14 +272,14 @@ for i in range (0, 3) {
 
 for i in range (0, 5) {
     achievement(
-    title = format("{0} (copy)", upgradeName[i][0]), points = 5,
-    description = format("{0} (copy)", upgradeDesc[i][0]),
+    title = format("{0}", upgradeName[i][0]), points = 5,
+    description = format("{0}", upgradeDesc[i][0]),
     trigger = measured(always_true(), when=ingame <= 2) && state == 16 && upgradeLogic(i)
     )
 }
 
 achievement(
-    title = "Big Foot Challenge (copy)", points = 5,
+    title = "Big Foot Challenge", points = 5,
     description = "Defeat Big Foot without breaking the middle boxes or allowing him to land.",
     trigger =  never(state == 0 || state == 7 || stage != 50 || dword(tbyte(0x2581b4) + 0x1A88) == 0
             || dword(tbyte(0x2581b4) + 0x1A98) == 0 || dword(tbyte(0x2581b4) + 0x1AC4) == 0
@@ -289,32 +289,32 @@ achievement(
 )
 
 achievement(
-    title = "King Boom Boo Challenge (copy)", points = 5,
-    description = "Defeat King Boom Boo without him noticing you coming from behind. (copy)",
+    title = "King Boom Boo Challenge", points = 5,
+    description = "Defeat King Boom Boo without him noticing you coming from behind.",
     trigger =  never(state == 0 || state == 7 || stage != 53 || word(tbyte(0x25bc98) + 0x44) == 259)
             && once(prev(time) == 0 && time > 0)
             && trigger_when(float(tbyte(0x25bc98) + 0x0C) == 0.0)
 )
 
 achievement(
-    title = "Hot Shot GG (copy)", points = 5,
-    description = "Defeat Hot Shot without taking damage (copy)",
+    title = "Hot Shot GG", points = 5,
+    description = "Defeat Hot Shot without taking damage",
     trigger = never(state == 0 || state == 7 || stage != 51 || bit7(playerPointer + 0x05) == 1)
             && once(prev(time) == 0 && time > 0)
             && trigger_when(float(tbyte(0x25bcb0) + 0x0C) == 0.0)
 )
 
 achievement(
-    title = "Faster than Sonic (copy)", points = 5,
-    description = "Defeat Sonic in the jungle in less than 20 seconds (copy)",
+    title = "Faster than Sonic", points = 5,
+    description = "Defeat Sonic in the jungle in less than 20 seconds",
     trigger = never(state == 0 || state == 7 || stage != 19 || time < 0x1400)
             && once(prev(time) == 0 && time > 0)
             && trigger_when(float(tbyte(0x2512bc) + 0x48) == 0.0)
 )
 
 achievement(
-    title = "I Am the Eggman (copy)", points = 5,
-    description = "Defeat Egg Golem as Eggman without letting it start the headbutt attack (copy)",
+    title = "I Am the Eggman", points = 5,
+    description = "Defeat Egg Golem as Eggman without letting it start the headbutt attack",
     trigger = never(state == 0 || state == 7 || stage != 57
             || dword(tbyte(tbyte(0x25bc98) + 0xFFFFFFF4) + 0x04) == 9)
             && once(prev(time) == 0 && time > 0)
@@ -324,7 +324,7 @@ achievement(
 for i in range(0, 1) {
     achievement(
         title = format("{0}", storyName[i][1]), points = 10,
-        description = format("Complete the {0} side boss attack without losing a life. (Failing, Return to Menu) (copy)", storyDesc[i][0]),
+        description = format("Complete the {0} side boss attack without losing a life. (Failing, Return to Menu)", storyDesc[i][0]),
         trigger = never(story != 12 + i || prev(byte(0x0db26c)) > byte(0x0db26c))
                 && once(byte(0x0db26c) == 4 && stage == 50 + i) && trigger_when(stage == 42
                 && float(tbyte(0x2512bc) + 0x48) == 0.0)
@@ -333,8 +333,8 @@ for i in range(0, 1) {
 
 for i in range (0, 2) {
     achievement(
-        title = format("Time Trial {0} Karting (copy)", kartName[i][0]), points = 5,
-        description = format("Achieve a new best time of under {0} on the {1} kart race (copy)", kartDesc[i][0], kartDesc[i][1]),
+        title = format("Time Trial {0} Karting", kartName[i][0]), points = 5,
+        description = format("Achieve a new best time of under {0} on the {1} kart race", kartDesc[i][0], kartDesc[i][1]),
         trigger =  stage == 71 && course == 24 + i && prev(courseclear) == 0 && courseclear == 1
                 && __ornext(dword(playerPointer + 0x15BC) == 1 || dword(tbyte(0x25127c) + 0x15BC) == 1)
                 && time < courseTime[i][0]
