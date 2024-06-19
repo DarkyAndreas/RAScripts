@@ -90,6 +90,12 @@ stageDesc = {
     3: ["Get through Green Hill."]
 }
 
+missionDesc = {
+    0: ["Collect", "100 Rings"],
+    1: ["Find the",  "lost Chao"],
+    2: ["Clear", "Hard mode"],
+}
+
 storyNumb = {
     0: [42],
     1: [42],
@@ -206,10 +212,6 @@ function emblemLogic(i)
     }
 }
 
-function upgrades(i, j) {
-    return byte(0x26a1e0 + i + j)/byte(0x26a1e0 + i + j)
-}
-
 function upgradeLogic(i)
 {
     Array = []
@@ -219,6 +221,10 @@ function upgradeLogic(i)
     return sum_of(Array, y => prev(y)) < upgradeNumb[i][1] && sum_of(Array, y => y) == upgradeNumb[i][1]
 }
 
+function upgrades(i, j) => byte(0x26a1e0 + i + j)/byte(0x26a1e0 + i + j)
+
+function startandsubmit(i, j, l) => stage == stageNumb[i][j] && mission == 1+l*l-l/2 && prev(stageclear) == 1 && stageclear == 0
+
 for i in range (0, 3) {
     for j in range (0, length(stageNumb[i])-1) {
         achievement(
@@ -227,6 +233,16 @@ for i in range (0, 3) {
             trigger =  state == 16 && stage == stageNumb[i][j] && story == (i+1)%4
                     && prev(stageclear) == 1 && stageclear == 0
         )
+        for l in range (0, 2) {
+            leaderboard(
+                title = format("{0} - {1}", stageName[i][j], missionDesc[l][1]),
+                description = format("{0} {1} in {2}", missionDesc[l][0], missionDesc[l][1], stageName[i][j]),
+                start = startandsubmit(i, j, l),
+                cancel = always_false(),
+                submit = startandsubmit(i, j, l),
+                value = measured(byte(0x0db227) * 3600 + byte(0x0db228) + byte(0x0db229)), format="FRAMES", lower_is_better=true
+            )
+        }
         if (i != 3) {
             function ranks(i, j, x) => byte(stageRank[i][j] + 0)/x + byte(stageRank[i][j] + 1)/x + byte(stageRank[i][j] + 2)/x
                     + byte(stageRank[i][j] + 3)/x + byte(stageRank[i][j] + 4)/x
@@ -255,10 +271,11 @@ for i in range (0, 3) {
                     && prev(stageclear) == 0 && stageclear == 1
         )
         achievement(
-                title = format("{0}", emblemName[i][0]), points = 25,
-                description = format("{0}", emblemDesc[i][0]),
-                trigger =  measured(always_true(), when=ingame <= 2) && state == 16 && emblemLogic(i)
-            )
+            title = format("{0}", emblemName[i][0]), points = 25,
+            description = format("{0}", emblemDesc[i][0]),
+            trigger =  measured(always_true(), when=ingame <= 2) && state == 16 && emblemLogic(i)
+        )
+        
     }
     else {
         achievement(
@@ -347,12 +364,13 @@ for i in range (0, 2) {
     )
     achievement(
         title = format("{0}", dlcName[i][1]), points = 5,
-        description = format("Achieve a new best time of under {0} on the {1} course", dlcDesc[i][1], dlcDesc[i][0]),
+        description = format("Achieve a new best time of under {0} on the {1}", dlcDesc[i][2], dlcDesc[i][0]),
         trigger =  stage == 71 && course == dlcNumb[i][0] && prev(courseclear) == 0 && courseclear == 1
                 && __ornext(dword(playerPointer + 0x15BC) == 1 || dword(tbyte(0x25127c) + 0x15BC) == 1)
                 && time < dlcTime[i][0]
     )
 }
+
 
 //New Challenges
 
@@ -565,6 +583,15 @@ scoreCheevo(1, 5, "A Crushed Colony's Dream", "Find the way to the colony's core
 chaoCheevo(1, 6, "The Ultimate Weapon: A Chao!")
 
 backCheevo(1, 7, "Securing all these Rings")
+
+achievement(
+    title = "Skating in the Jungle", points = 5,
+    description = "Collect 100 rings in White Jungle using only the control stick",
+    trigger =  never(state == 0 || stage != 4 || bitcount(0x24eef0) + bitcount(0x24eef1) + bitcount(0x24eef2) - bit3(0x24eef0) > 0)
+            && once(startCha)
+            && mission == 1
+            && trigger_when(prev(stageclear) == 1 && stageclear == 0)
+)
 
 ringlessCheevo(1, 10, "Payment for a Fakery Way", "Chase the Tornado")
 

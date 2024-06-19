@@ -18,8 +18,11 @@
 	"[RATools] Achievement Function": {
 		"prefix": "achievement",
 		"body": [
-			"achievement(${1:title}, ${2:description}, ${3:points},",
-			"            trigger = always_true())"
+			"achievement(",
+			"\t${1:title = }, points = , ${4:type = }",
+			"\t${2:description = },",
+			"\ttrigger = ",
+			")",
 		],
 		"description": "Defines a new achievement with the specified title (string), description (string), points (integer), and trigger."
 	},
