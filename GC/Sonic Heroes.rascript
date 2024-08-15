@@ -11,6 +11,7 @@ bossRanks = 0x3e7bfb
 
 ranks = []
 rankb = []
+chaos = []
 
 stageName = {
     0: ["Seaside Hill","Ocean Palace","Grand Metropolis","Power Plant","Casino Park","Bingo Highway","Rail Canyon",
@@ -115,12 +116,15 @@ for i in range (0, 3) {
     }
 }
 
+for i in range (0, 6) {
+    array_push (chaos, dword_be(0x3e7dc4 + 0x0C * i))
+}
+
 achievement(
     title = "Collect More than Just Blue Spheres!", points = 10, type = "progression",
     description = "Obtain all seven Chaos Emeralds. Are you ready to battle the real villain?",
-    trigger = state == 12 && prev(bit0(0x3e7dc4) + bit0(0x3e7dd0) + bit0(0x3e7ddc) + bit0(0x3e7de8)
-            + bit0(0x3e7df4) + bit0(0x3e7e00) + bit0(0x3e7e0c)) == 6 && bit0(0x3e7dc4) + bit0(0x3e7dd0)
-            + bit0(0x3e7ddc) + bit0(0x3e7de8) + bit0(0x3e7df4) + bit0(0x3e7e00) + bit0(0x3e7e0c) == 7
+    trigger = __ornext(state == 8 || state == 12) && sum_of(chaos, y=>prev(y)) == 6
+                && sum_of(chaos, y=>y) == 7
 )
 
 achievement(
@@ -138,11 +142,11 @@ for i in range (0, length(stageName[0])-1) {
     achievement(
         title = format("{0}", stageDesc[0][i]), points = 10,
         description = format("Earn an A rank on every mission for {0}", stageName[0][i]),
-        trigger =  state == 12 && prev(rankCalc()) == 7
+        trigger =  __ornext(state == 8 || state == 12) && prev(rankCalc()) == 7
                 && measured(rankCalc() == 8)
     )
     array_push (ranks, rankCalc())
-    stageRanks = stageRanks + 0x44
+    stageRanks = stageRanks + 0x50
 }
 
 for i in range (0, 28) {
@@ -151,20 +155,20 @@ for i in range (0, 28) {
 achievement(
         title = "Perfected! Impossible! Nooooooo!", points = 10,
         description = "Earn an A rank on every boss battle with all teams",
-        trigger =  state == 12 && sum_of(rankb, y=>prev(y)) == 28
+        trigger =  __ornext(state == 8 || state == 12) && sum_of(rankb, y=>prev(y)) == 28
                 && measured(sum_of(rankb, y=>y) == 29)
 )
 
 achievement(
         title = "All Emblem Data... Has Been Copied", points = 25,
         description = "Earn all 120 emblems... but how are your ranks?",
-        trigger =  state == 8 && prev(byte(0x3e776e)) == 119 && measured(byte(0x3e776e) == 120)
+        trigger =  __ornext(state == 8 || state == 12) && prev(byte(0x3e776e)) == 119 && measured(byte(0x3e776e) == 120)
 )
 
 achievement(
         title = "All Missions Kneel Before Your Master!", points = 50,
         description = "Earn all 141 A ranks in the game. Are you ready for Super Hard?",
-        trigger =  state == 12 && sum_of(ranks, y=>prev(y)) + sum_of(rankb, y=>prev(y)) == 140
+        trigger =  __ornext(state == 8 || state == 12) && sum_of(ranks, y=>prev(y)) + sum_of(rankb, y=>prev(y)) == 140
                 && measured(sum_of(ranks, y=>y) + sum_of(rankb, y=>y) == 141)
 )
 
@@ -193,7 +197,7 @@ for i in range (0, 3) {
     achievement(
             title = format("{0}", exitName[i][0]), points = 3 + i + ((i*-1)/2),
             description = format("{0}", exitDesc[i][0]),
-            trigger =  stage == 6 + (2*(1%(i+1))) + (i/1) && state == 12 && teams == 2 && exitLogic(i)
+            trigger =  stage == 6 + (2*(1%(i+1))) + (i/1) && state == 12 && teams == 2 && exitLogic(i) && byte(0x00452c38) == 0
     )
 }
 
@@ -202,6 +206,6 @@ for i in range (0, 6) {
             title = format("Chaotic Blitzing for the Emeralds - {0}", EmeraldTime[i][0]), points = EmeraldPoints[0][i],
             description = format("Obtain the Chaos Emerald in Emerald Challenge {0} while at speed level 3 in {1} or less", i+1, EmeraldTime[i][1]),
             trigger =  stage == 52 + i && state >= 3 && tbyte_be(0x0042c2fb) <= EmeraldTime[i][2]
-                    && trigger_when(state == 12 && float_be(0x0056f770) >= 200.0)
+                    && trigger_when(state == 12 && float_be((dword_be(0x002d5e80) & 0x1ffffff) + 0x7a50) >= 200.0)
     )
 }

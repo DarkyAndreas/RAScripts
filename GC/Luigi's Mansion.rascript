@@ -2,7 +2,19 @@
 // #ID = 4325
 
 map = dword_be(0x4c5764)
-check = dword_be(0x4c5760) == 2 && map == 2
+check = prev(dword_be(0x4c5760)) == 2 && map == 2
+roomlookup = {}
+healthtext = {}
+statPointer = (dword_be(0x003c613c) & 0x1ffffff)
+coords = (dword_be(0x003c6100) & 0x1ffffff)
+menu = dword_be(0x004c5760)
+mode = bit0(0x4c5787)
+heartKey = bit7(0x003c336e)
+clubKey = bit0(0x003c336f)
+diamondKey = bit1(0x003c336f)
+spadeKey = bit0(0x003c33dd)
+health = word_be((dword_be(0x003c6100) & 0x1ffffff) + 0xB8)
+room = dword_be(statPointer + 0x35C)
 
 function jewelCalc() {
     Array = []
@@ -14,8 +26,8 @@ function jewelCalc() {
 function booCalc() {
     Array = []
     for i in range (0, 14) {
-        array_push(Array,  prev(byte((dword_be((dword_be(0x003c1f50 + 4*i) & 0x1ffffff) - 0x08) & 0x1ffffff) + 0x80)) != 4
-                        && byte((dword_be((dword_be(0x003c1f50 + 4*i) & 0x1ffffff) - 0x08) & 0x1ffffff) + 0x80) == 4)
+        array_push(Array,  prev(byte((dword_be((dword_be(0x003c1f50 + 4*i) & 0x1ffffff) - 0x08) & 0x1ffffff) + 0x83)) != 4
+                        && byte((dword_be((dword_be(0x003c1f50 + 4*i) & 0x1ffffff) - 0x08) & 0x1ffffff) + 0x83) == 4)
     } return trigger_when(tally_of(Array, 10, y => once(y && never(dword_be(0x003c6360) == 0))))
 }
 
@@ -32,22 +44,24 @@ function frozenbooCalc() {
 bitflags = {
     0: [bit5(0x003c3372),bit6(0x003c3372),bit7(0x003c3372),bit4(0x003c337b),
         bit5(0x003c337b),bit6(0x003c337b),bit7(0x003c337b),bit0(0x003c337c)],
-    1: ["Burn it All Down!","Dinner Is Served Cold Today","The New Gardener","Squeaky Clean",
-        "The Gold Inside The Moon","Bowsers Best Buddy","Stepping in Dangerous Territory","You Got Mail"],
-    2: ["fire","ice","water","Hat","Star","Glove","Shoe","Letter"],
+    1: ["Burn It All Down!","Dinner Is Served Cold Today","The New Gardener","Squeaky Clean",
+        "The Gold Inside the Moon","Bowser's Best Buddy","Stepping in Dangerous Territory","You Got Mail"],
+    2: ["fire","ice","water","Hat,","Star,","Glove,","Shoe,","Letter,"],
     3: ["Unlock the ability to use", "with your Poltergust"],
-    4: ["Find Mario's", "and the tale this item holds"]
+    4: ["Find Mario's", "you better keep an eye on it!"]
 }
 
 achievement(
     title = "Musical Madness", points = 0,
-    description = "Hear Totaka's song",
-    trigger =  map == 3 && dword_be(0x00447a08) == 0x80749b40 && dword_be(0x00447a0c) == 0x2330
+    description = "Hear Totaka's Song",
+    trigger =  map == 3 && prev(word_be(0x0070feea)) == 0x25 && word_be(0x0070feea) == 0x25
+            && prev(dword_be((dword_be(0x00739980) & 0x1ffffff) + 0x04)) < 0x2320
+            && dword_be((dword_be(0x00739980) & 0x1ffffff) + 0x04) >= 0x2320
 )
 
 achievement(
     title = "A Long Way to Mastery", points = 1,
-    description = "Manage to dissapoint Professor E. Gadd twice without leaving the Tutorial",
+    description = "Disappoint Professor E. Gadd twice in the tutorial without leaving",
     trigger =  never(map != 3) && once(word_be((dword_be(0x003c030c) & 0x1ffffff) + 0x17) == 0x3538)
             && tbyte_be((dword_be(0x003c030c) & 0x1ffffff) + 0xffffffef) == 0x313633
             && word_be((dword_be(0x003c030c) & 0x1ffffff) + 0x1f) == 0x3332
@@ -55,21 +69,21 @@ achievement(
 
 achievement(
     title = "Ghost Bustin'", points = 2,
-    description = "Make Prof. E Gadd proud by catching at least 10 ghosts in the Tutorial",
+    description = "Make Professor E. Gadd proud by catching at least 10 ghosts in the tutorial",
     trigger =  map == 3 && tbyte_be((dword_be(0x003c030c) & 0x1ffffff) - 0x11) == 0x313433
-            && word_be((dword_be(0x003c030c) & 0x1ffffff) + 0xA) == 0x3331
+            && word_be((dword_be(0x003c030c) & 0x1ffffff) + 0xA) == 0x3331 && dword_be(statPointer + 0x21C) >= 10
 )
 
 achievement(
     title = "BOOsting Out!", points = 3, type = "progression",
-    description = "Set free a hoard of boos that have been locked away for good",
+    description = "Set free a hoard of Boos that have been locked away for good",
     trigger =  dword_be(0x4c5760) == 2 && map == 1 && dword_be((dword_be(0x003c613c) & 0x1ffffff) + 0x35C) == 14
             && prev(bit0(0x003bb275)) == 0 && bit0(0x003bb275) == 1
 )
 
 achievement(
     title = "BOOsting the Confidence", points = 2, type = "progression",
-    description = "Collect your first five Boos",
+    description = "Capture 5 Boos",
     trigger =  check && prev(byte((dword_be(0x00391024) & 0x1ffffff) + 0x77)) == 4
             && byte((dword_be(0x00391024) & 0x1ffffff) + 0x77) == 5
 )
@@ -83,34 +97,35 @@ for i in range (0, length(bitflags[0])-1) {
 }
 
 achievement(
-    title = "Telephone Prank", points = 2,
+    title = "Telephone Prank", points = 2, type = "missable",
     description = "Learn about Uncle Grimmly and successfully escape a pack of ghosts",
-    trigger =  check && prev(bit2(0x003c3366)) == 0 && bit2(0x003c3366) == 1
+    trigger =  check && prev(byte(0x4c58e2)) == 1 && byte(0x4c58e2) == 0 && room == 53
 )
 
 achievement(
     title = "The Final Laugh", points = 2, type = "progression",
-    description = "Pick up the Spade Key granting you access to the Secret Altar",
+    description = "Obtain the Spade Key and gain access to the Secret Altar",
     trigger =  check && prev(bit0(0x003c33dd)) == 0 && bit0(0x003c33dd) == 1
 )
 
 achievement(
     title = "Hidden Riches", points = 5,
-    description = "Pick up all Jewels in the Normal Mansion (30) or Hidden Mansion (15)",
-    trigger =  check && (byte(0x004c5787) == 0 && prev(jewelCalc()) <= 30 && jewelCalc() == 30
+    description = "Collect all 30 Emeralds, Sapphires, and Rubies in the Normal Mansion, or all 15 in the Hidden Mansion",
+    trigger =  check && bit3(0x003bb3cc) == 1 && bit7(0x003bb3ba) == 1 && bit4(0x003bb3c7) == 1
+            && (byte(0x004c5787) == 0 && prev(jewelCalc()) <= 30 && jewelCalc() == 30
             || byte(0x004c5787) == 1 && prev(jewelCalc()) <= 15 && jewelCalc() == 15)
 )
 
 achievement(
     title = "BOOrning to See Them Like That", points = 1,
-    description = "Use a certain element on a Boo to catch it faster",
+    description = "Use a certain element on a Boo to capture it faster",
   //descriptOld = "Use Ice on a Boo to take away at least 50 HP without letting him leave the room",
-    trigger =  check && frozenbooCalc()
+    trigger =  check && dword_be((dword_be(0x003c613c) & 0x1ffffff) + 0x1B4) == 4 && frozenbooCalc()
 )
 
 achievement(
     title = "BOOld of You to BOOll up Like That", points = 5,
-    description = "Freeze up at least 10 Boos with a chunk of ice at once during the Boolossus fight",
+    description = "Freeze at least 10 Little Boos at once using an ice ball during the Boolossus fight",
     trigger =  dword_be(0x4c5760) == 2 && map == 11
             && byte((dword_be((dword_be(0x003c1f4c) & 0x1ffffff) - 0x08) & 0x1ffffff) + 0x24C) >= 10 && booCalc()
             
@@ -138,17 +153,6 @@ rooms = {
     0x3f,0x40,0x41,0x42,0x43,0x44,0x45,0x47,0x48,0x49],
 }
 
-roomlookup = {}
-healthtext = {}
-statPointer = (dword_be(0x003c613c) & 0x1ffffff)
-coords = (dword_be(0x003c6100) & 0x1ffffff)
-menu = dword_be(0x004c5760)
-heartKey = bit7(0x003c336e)
-clubKey = bit0(0x003c336f)
-diamondKey = bit1(0x003c336f)
-spadeKey = bit0(0x003c33dd)
-health = word_be((dword_be(0x003c6100) & 0x1ffffff) + 0xB8)
-room = dword_be(statPointer + 0x35C)
 function roomCalc() {
     Array = []
     for i in range (0, length(rooms[1])-1) {
@@ -178,6 +182,7 @@ heart = {0:"♡", 1:"♥"}
 club = {0:"♧", 1:"♣"}
 diamond = {0:"♢", 1:"♦"}
 spade = {0:"♤", 1:"♠"}
+modetext = {0:"", 1:" | Hidden Mansion"}
 
 menutext = {
     1:"taking a look at the horrific Title Screen",
@@ -192,7 +197,7 @@ maptext = {
     3:"preparing himself in the Training Room",
     4:"watching the creations of paintings by the Ghost Portrificationizer",
     5:"inhaling dust in the Beta Gallery",
-    6:"taking a look at his catched ghost in the Gallery",
+    6:"taking a look at his caught ghosts in the Gallery",
     7:"stepping on bugs in the Beta Gallery 2",
     8:"glitching around in the Beta Gallery 3",
     9:"giving it his all to save his brother in a fight against Bowser and King Boo",
@@ -200,40 +205,29 @@ maptext = {
     11:"letting his hands freeze in a fight against Boolossus",
     12:"watching the creation of a brother by the Mario Deportrificationizer",
     13:"losing trust in his shadow in a fight against Bogmire",
-}    
+}
 
-rich_presence_conditional_display(menu == 1 || menu == 3 || menu == 4 || menu == 7, "Luigi is currently {0}",
-    rich_presence_lookup("Menu", menu, menutext))
+rich_presence_conditional_display(menu == 1 || menu == 3 || menu == 4 || menu == 7, "Luigi is currently {0}{1}",
+    rich_presence_lookup("Menu", menu, menutext), rich_presence_lookup("Mode", mode, modetext))
 rich_presence_conditional_display(dword_be(0x00390dbc) == 5, "Luigi is currently enjoying the Credits")
 rich_presence_conditional_display(menu == 6, "Luigi has defeated Bowser and King Boo! He cleared the manion with a score of {0}.000G",
     rich_presence_value("Fixed3", money(), "FIXED3"))
-rich_presence_conditional_display(map != 2 && menu == 2 || menu == 5, "Luigi is currently {0} | Health: {2} | Cash: {3}.000G | Keys: {4} {5} {6} {7}",
-    rich_presence_lookup("Map", map, maptext),
-    rich_presence_lookup("Room", room, roomlookup),
-    rich_presence_value("Value", health, "VALUE"),
-    rich_presence_value("Fixed3", money(), "FIXED3"),
-    rich_presence_lookup("KeyHeart", heartKey, heart),
-    rich_presence_lookup("KeyClub", clubKey, club),
-    rich_presence_lookup("KeyDiamond", diamondKey, diamond),
-    rich_presence_lookup("KeySpade", spadeKey, spade))
-rich_presence_conditional_display(roomCalc(), "Luigi is currently {0} in {1} X={8} Y={9} Z={10} | Health: {2} | Cash: {3}.000G | Keys: {4} {5} {6} {7}",
-    rich_presence_lookup("Health", health, healthtext),
-    rich_presence_value("Value", room, "VALUE"),
-    rich_presence_value("Value", health, "VALUE"),
-    rich_presence_value("Fixed3", money(), "FIXED3"),
-    rich_presence_lookup("KeyHeart", heartKey, heart),
-    rich_presence_lookup("KeyClub", clubKey, club),
-    rich_presence_lookup("KeyDiamond", diamondKey, diamond),
-    rich_presence_lookup("KeySpade", spadeKey, spade),
-    rich_presence_value("Value", dword_be(coords + 0), "VALUE"),
-    rich_presence_value("Value", dword_be(coords + 4), "VALUE"),
-    rich_presence_value("Value", dword_be(coords + 8), "VALUE"))
-rich_presence_display("Luigi is currently {0} in {1} | Health: {2} | Cash: {3}.000G | Keys: {4} {5} {6} {7}",
-    rich_presence_lookup("Health", health, healthtext),
-    rich_presence_lookup("Room", room, roomlookup),
-    rich_presence_value("Value", health, "VALUE"),
-    rich_presence_value("Fixed3", money(), "FIXED3"),
-    rich_presence_lookup("KeyHeart", heartKey, heart),
-    rich_presence_lookup("KeyClub", clubKey, club),
-    rich_presence_lookup("KeyDiamond", diamondKey, diamond),
-    rich_presence_lookup("KeySpade", spadeKey, spade))
+rich_presence_conditional_display(map != 2 && menu == 2 || menu == 5, "Luigi is currently {0} | Health: {2} | Cash: {3}.000G | Keys: {4} {5} {6} {7}{8}",
+    rich_presence_lookup("Map", map, maptext), rich_presence_lookup("Room", room, roomlookup),
+    rich_presence_value("Value", health, "VALUE"), rich_presence_value("Fixed3", money(), "FIXED3"),
+    rich_presence_lookup("KeyHeart", heartKey, heart), rich_presence_lookup("KeyClub", clubKey, club),
+    rich_presence_lookup("KeyDiamond", diamondKey, diamond), rich_presence_lookup("KeySpade", spadeKey, spade),
+    rich_presence_lookup("Mode", mode, modetext))
+rich_presence_conditional_display(roomCalc(), "Luigi is currently {0} in {1} X={8} Y={9} Z={10} | Health: {2} | Cash: {3}.000G | Keys: {4} {5} {6} {7}{11}",
+    rich_presence_lookup("Health", health, healthtext), rich_presence_value("Value", room, "VALUE"),
+    rich_presence_value("Value", health, "VALUE"), rich_presence_value("Fixed3", money(), "FIXED3"),
+    rich_presence_lookup("KeyHeart", heartKey, heart), rich_presence_lookup("KeyClub", clubKey, club),
+    rich_presence_lookup("KeyDiamond", diamondKey, diamond), rich_presence_lookup("KeySpade", spadeKey, spade),
+    rich_presence_value("Value", dword_be(coords + 0), "VALUE"), rich_presence_value("Value", dword_be(coords + 4), "VALUE"),
+    rich_presence_value("Value", dword_be(coords + 8), "VALUE"), rich_presence_lookup("Mode", mode, modetext))
+rich_presence_display("Luigi is currently {0} in {1} | Health: {2} | Cash: {3}.000G | Keys: {4} {5} {6} {7}{8}\n//RP by DarkyAndreas",
+    rich_presence_lookup("Health", health, healthtext), rich_presence_lookup("Room", room, roomlookup),
+    rich_presence_value("Value", health, "VALUE"), rich_presence_value("Fixed3", money(), "FIXED3"),
+    rich_presence_lookup("KeyHeart", heartKey, heart), rich_presence_lookup("KeyClub", clubKey, club),
+    rich_presence_lookup("KeyDiamond", diamondKey, diamond), rich_presence_lookup("KeySpade", spadeKey, spade),
+    rich_presence_lookup("Mode", mode, modetext))

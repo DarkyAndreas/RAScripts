@@ -6,7 +6,7 @@ check = dword_be(0x0049e750) == 0 && ~dword_be(0x0049e760) == 0 && prev(dword_be
 function creditsCalc()
 {
     Array = []
-    for i in range (0x1E8, 0xAAC, 0x0C) {
+    for i in range (0x1E8, 0xADC, 0x0C) {
         array_push(Array, (dword_be((dword_be(0x004d672c) & 0xfffffff) + i)) / (dword_be((dword_be(0x004d672c) & 0xfffffff) + i)))
     } return sum_of(Array, y => y)
 }
