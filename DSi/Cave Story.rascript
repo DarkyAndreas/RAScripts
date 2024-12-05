@@ -402,7 +402,7 @@ function cheevo1SS(region) {
 }
 
 function cheevo1SSS(region) {
-    return dword(0xffe00c) == Code[region] && HUD[region] == 4 && Room[region] == 0x52 && WeaponMaxAchievementLogic(region, 100)
+    return dword(0xffe00c) == Code[region] && HUD[region] == 4 && Room[region] == 0x52 && WeaponAchievementLogic(region, 5)
 }
 
 function cheevo2(region, i) {
@@ -1045,8 +1045,10 @@ achievement(
 //}
 
 for i in range (1, 18) {
+if (i != 1 && i < 13 || i > 15) t = "progression"
+else t = ""
 achievement(
-    title = BossTitle[i], points = 5,
+    title = BossTitle[i], points = 5, type = t,
     description = format("Defeat {0} in {1}", Boss[i], BossRoomName[i]),
     trigger = cheevo2("US", i) || cheevo2("JP", i)
 )
@@ -1257,7 +1259,7 @@ achievement(
 )
 
 achievement(
-    title = "Saved the World, but at What Cost?", points = 25,
+    title = "Saved the World, but at What Cost?", points = 25, type = "win_condition",
     description = "Achieve the Normal End",
     trigger = NormalEnd("US") || NormalEnd("JP")
 )
@@ -1269,7 +1271,7 @@ achievement(
 )
 
 achievement(
-    title = "Breaking This Hellish Curse", points = 25,
+    title = "Breaking This Hellish Curse", points = 25, type = "win_condition",
     description = "Achieve the Best End",
     trigger = BestEnd("US") || BestEnd("JP")
 )

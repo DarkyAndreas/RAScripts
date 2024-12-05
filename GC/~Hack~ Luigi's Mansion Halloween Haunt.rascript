@@ -13,9 +13,9 @@ room = dword_be(statPointer + 0x35C)
 mode = word_be(statPointer + 0x2C) + dword_be(0x004d80c0)
 
 rooms = {
-    0: ["Wardrobe Room","Basement","Sorcery Room","Library","Residence Organ Room",
-        "Foyer","Bedroom","Garden","Living Room"],
-    1: [0x01,0x02,0x03,0x04,0x05,0x06,0x08,0x09,0x14],
+    0: ["Wardrobe Room","Basement","Sorcery Room","Library","Grand Hall",
+        "Foyer","Master Bedroom","Haunted Bedroom","Yard","Living Room"],
+    1: [0x01,0x02,0x03,0x04,0x05,0x06,0x07,0x08,0x09,0x14],
 }
 
 modetext = {100:"Normal", 101:"Hidden", 001:"Daredevil"}
@@ -135,10 +135,10 @@ rich_presence_conditional_display(menu == 1 || menu == 3 || menu == 4 || menu ==
 rich_presence_conditional_display(dword_be(0x003a3ae4) == 5, "Luigi is currently enjoying the Credits")
 rich_presence_conditional_display(menu == 6, "Luigi has lifted the curse! He cleared the manion with a score of {0}.000G | {1}/6 Emeralds",
     rich_presence_value("Fixed3", prior(money()), "FIXED3"), rich_presence_value("Value", prior(jewelCalc()), "Value"))
-rich_presence_conditional_display(map == 2 && room == 8 && dword_be(coords + 4) <= 20.0 && menu == 2 || menu == 5, "Luigi is currently {0} | Health: {2} | Cash: {3}.000G | {4} Mansion | {5}/6 Emeralds",
-    rich_presence_lookup("Map", map, maptext), rich_presence_lookup("Room", room, roomlookup),
-    rich_presence_value("Value", health, "VALUE"), rich_presence_value("Fixed3", money(), "FIXED3"),
-    rich_presence_lookup("Mode", mode, modetext), rich_presence_value("Value", prior(jewelCalc()), "Value"))
+rich_presence_conditional_display(map == 2 && room == 8, "Luigi is currently fighting against the hoard of minions in {0} | Health: {1} | Cash: {2}.000G | {3} Mansion | {4}/6 Emeralds",
+    rich_presence_lookup("Room", room, roomlookup), rich_presence_value("Value", health, "VALUE"),
+    rich_presence_value("Fixed3", money(), "FIXED3"), rich_presence_lookup("Mode", mode, modetext),
+    rich_presence_value("Value", jewelCalc(), "Value"))
 rich_presence_conditional_display(roomCalc() && health == 0, "Luigi is getting ready to hunt ghosts")
 /*rich_presence_conditional_display(map != 2 && menu == 2 || menu == 5, "Luigi is currently {0} | Health: {2} | Cash: {3}.000G | {4} Mansion | {5}/8 Emeralds",
     rich_presence_lookup("Map", map, maptext), rich_presence_lookup("Room", room, roomlookup),
