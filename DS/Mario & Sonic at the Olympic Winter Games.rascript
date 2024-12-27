@@ -3,6 +3,7 @@
 
 menu = byte(0x3d9888)
 submenu = byte(0x3d9889)
+screen = dword(0x3d9a20)
 
 function L(x) => low4(tbyte(0x3bde08) + x)
 function H(x) => high4(tbyte(0x3bde08) + x)
@@ -143,22 +144,35 @@ missions = {
 
 items = {
     0: [ //frostown
-    
+    [0x0e379c,[bit1,bit4,bit7]],
+    [0x0e379d,[bit2,bit3,bit7]],
+    [0x0e379e,[bit1,bit4]],
+    [0x0e379f,[bit2,bit7]],//bit2(0x0e379f),bit7(0x0e379f),
+    [0x0e37a0,[bit3]],//bit3(0x0e37a0),
+    [0x0e37a1,[bit1,bit4,bit5,bit7]],//bit1(0x0e37a1),bit4(0x0e37a1),bit5(0x0e37a1),bit7(0x0e37a1),
+    [0x0e37a2,[bit1,bit4]],//bit1(0x0e37a2),bit4(0x0e37a2),
+    [0x0e37a3,[bit1]],//bit1(0x0e37a3),
+    [0x0e37a4,[bit1,bit2]],//bit1(0x0e37a4),bit2(0x0e37a4),
+    [0x0e37a5,[bit6]],//bit6(0x0e37a5),
+    [0x0e37a6,[bit3]],//bit3(0x0e37a6),
+    [0x0e37a7,[bit0,bit1,bit2,bit3,bit4,bit5,bit6,bit7]],//bitcount(0x0e37a7),
+    [0x0e37a8,[bit0,bit1,bit2,bit3,bit4,bit5,bit6]],//bitcount(0x0e37a8)- bit7(0x0e37a8),
+    [0x0e3834,[bit1]],
     ],
     1: [ //sparkleton
-    
+    [0x0e379c,[bit1,bit4,bit7]],[0x0e379d,[bit2,bit3,bit7]],
     ],
     2: [ //polastraits
-    
+    [0x0e379c,[bit1,bit4,bit7]],[0x0e379d,[bit2,bit3,bit7]],
     ],
     3: [ //cubyrinth
-    
+    [0x0e379c,[bit1,bit4,bit7]],[0x0e379d,[bit2,bit3,bit7]],
     ],
     4: [ //icepeak
-    
+    [0x0e379c,[bit1,bit4,bit7]],[0x0e379d,[bit2,bit3,bit7]],
     ],
     5: [ //blizland
-    
+    [0x0e379c,[bit1,bit4,bit7]],[0x0e379d,[bit2,bit3,bit7]],
     ],
 }
 
@@ -167,18 +181,39 @@ function missionCalc(i, x) {
     for j in range (0, length(missions[i]) -1) {
         array_push(Array, missions[i][j]/x)
     }
-    return sum_of(Array, y => prev(y)) == length(missions[i]) - 1 && measured(sum_of(Array, y => y) == length(missions[i]))
+    return sum_of(Array, y => prev(y)) == length(Array) - 1 && measured(sum_of(Array, y => y) == length(Array))
+}
+
+function itemCalc(i) {
+    Array = []
+    Array2 = []
+    for j in range (0, length(items[i]) -1) {
+        off = items[i][j][0]
+        size = items[i][j][1]
+        Array2 = array_map(size, y=>y(off))
+        for l in range (0, length(Array2) - 1) {
+            array_push(Array, Array2[l])
+        }
+    }
+    return sum_of(Array, y => prev(y)) == length(Array) - 1 && measured(sum_of(Array, y => y) == length(Array))
 }
 
 for i in range (0, length(missions) -1) {
+    start = once(screen == 0x51)
+    nstart = never(screen == 0x1d || screen == 0x27)
     achievement(
     title = format("{0}'s Mission",place[i]), points = 10,
     description = format("Complete all Missions in {0} on any Rank",place[i]),
-    trigger = measured(always_true(), when=menu == 16 && submenu == 1) && missionCalc(i,3)
+    trigger = nstart && measured(always_true(), when=start) && missionCalc(i,3)
     )
     achievement(
     title = format("Pure Gold in {0}",place[i]), points = 10,
     description = format("Complete all Missions in {0} on Gold Rank",place[i]),
-    trigger = measured(always_true(), when=menu == 16 && submenu == 1) && missionCalc(i,4)
+    trigger = nstart && measured(always_true(), when=start) && missionCalc(i,4)
     )
+    /*achievement(
+    title = format("{0}'s Items",place[i]), points = 10,
+    description = format("Find all obtainable Items in {0}",place[i]),
+    trigger = measured(always_true(), when=menu == 16 && submenu == 1) && itemCalc(i)
+    )*/
 }

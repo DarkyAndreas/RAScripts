@@ -428,7 +428,8 @@ for i in range (0, 3) {
         achievement(
             title = format("{0}", emblemName[i][0]), points = 25,
             description = format("{0}", emblemDesc[i][0]),
-            trigger =  measured(always_true(), when=ingame <= 2) && __ornext(state == 16 || story == i+1) && byte(0x26a690) == 0 && emblemLogic(i)
+            trigger =  measured(always_true(), when=ingame <= 2) && __ornext(state == 16 || story == i+1)
+            && dword(0x5cc2f8) != 0x09 && byte(0x26a690) == 0 && emblemLogic(i)
         )
     }
     else {
@@ -785,7 +786,9 @@ chaoCheevo(1, 3, "A Chao's Darkest Shadow")
 achievement(
     title = "Phantom Thief", points = 5,
     description = "Find the 3 Gate keys in Egg Quarters without ever being detected",
-    trigger =  never(demo == 1 || state == 0 || stage != 26 || dword(tbyte(0x6a4450) + 0x04) == 2 || dword(tbyte(0x6a4450) + 0x04) == 3)
+    trigger =  never(demo == 1 || state == 0 || stage != 26 
+            || dword(tbyte(0x6a4450) + 0x04) == 2 || dword(tbyte(0x6a4450) + 0x04) == 3
+            || dword(tbyte(0x6a4454) + 0x04) == 2 || dword(tbyte(0x6a4454) + 0x04) == 3)
             && once(state == 7 && byte(playerPointer + 0x205) == 3)
             && __ornext(mission == 0 || mission == 3 || mission == 4)
             && trigger_when(clearChallenge)
@@ -817,7 +820,7 @@ achievement(
     description = "Hurry to the Eclipse Cannon in Final Chase without touching more than 38 gravity barrels",
     trigger =  (never(demo == 1 || state == 0 || stage != 40)
             && once(startCha)
-            && __ornext(mission == 0 || mission == 3 || mission == 4)
+            && never(mission != 0 && mission != 3 && mission != 4)
             && trigger_when(clearChallenge))
             || measured(objectCheck(1), when=once(startCha)) && trigger_when(always_false())
             || (never(objectCheck(0))) && always_false()

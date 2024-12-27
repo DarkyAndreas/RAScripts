@@ -149,10 +149,26 @@
 		"description": ""
 	},
 
+	"[RATools] 16-bit BE (Memory Accessor)": {
+		"prefix": ["be_mem16bit", "word_be"],
+		"body": [
+			"word_be(${1:address})"
+		],
+		"description": ""
+	},
+
 	"[RATools] 24-bit (Memory Accessor)": {
 		"prefix": ["mem24bit", "tbyte"],
 		"body": [
 			"tbyte(${1:address})"
+		],
+		"description": ""
+	},
+
+	"[RATools] 24-bit BE (Memory Accessor)": {
+		"prefix": ["be_mem24bit", "tbyte_be"],
+		"body": [
+			"tbyte_be(${1:address})"
 		],
 		"description": ""
 	},
@@ -165,8 +181,16 @@
 		"description": ""
 	},
 
+	"[RATools] 32-bit BE (Memory Accessor)": {
+		"prefix": ["be_mem32bit", "dword_be"],
+		"body": [
+			"dword_be(${1:address})"
+		],
+		"description": ""
+	},
+
 	"[RATools] Bit0 (Memory Acessor)": {
-		"prefix": "b0",
+		"prefix": ["b0", "bit0"],
 		"body": [
 			"bit0(${1:address})"
 		],
@@ -174,7 +198,7 @@
 	},
 
 	"[RATools] Bit1 (Memory Acessor)": {
-		"prefix": "b1",
+		"prefix": ["b1", "bit1"],
 		"body": [
 			"bit1(${1:address})"
 		],
@@ -182,7 +206,7 @@
 	},
 
 	"[RATools] Bit2 (Memory Acessor)": {
-		"prefix": "b2",
+		"prefix": ["b2", "bit2"],
 		"body": [
 			"bit2(${1:address})"
 		],
@@ -190,7 +214,7 @@
 	},
 
 	"[RATools] Bit3 (Memory Acessor)": {
-		"prefix": "b3",
+		"prefix": ["b3", "bit3"],
 		"body": [
 			"bit3(${1:address})"
 		],
@@ -198,7 +222,7 @@
 	},
 
 	"[RATools] Bit4 (Memory Acessor)": {
-		"prefix": "b4",
+		"prefix": ["b4", "bit4"],
 		"body": [
 			"bit4(${1:address})"
 		],
@@ -206,7 +230,7 @@
 	},
 
 	"[RATools] Bit5 (Memory Acessor)": {
-		"prefix": "b5",
+		"prefix": ["b5", "bit5"],
 		"body": [
 			"bit5(${1:address})"
 		],
@@ -214,7 +238,7 @@
 	},
 
 	"[RATools] Bit6 (Memory Acessor)": {
-		"prefix": "b6",
+		"prefix": ["b6", "bit6"],
 		"body": [
 			"bit6(${1:address})"
 		],
@@ -222,7 +246,7 @@
 	},
 
 	"[RATools] Bit7 (Memory Acessor)": {
-		"prefix": "b7",
+		"prefix": ["b7", "bit7"],
 		"body": [
 			"bit7(${1:address})"
 		],
@@ -274,6 +298,26 @@
 		"prefix": "sum_of_bits",
 		"body": [
 			"sum_of(range(${1:min}, ${2:max}), b => bit(b,${3:address}))"
+		],
+		"description": "Returns the total amount of bits activated in the specified range and address."
+	},
+
+	"[RATools] Pointer Chain": {
+		"prefix": ["pc", "pointer_chain"],
+		"body": [
+			"function pointerChain(offsets,lastType) {",
+			"   mask = 0x1ffffff",
+			"   pointerCalc = dword(${1:address})",
+			"   Array = [pointerCalc & mask]",
+			"   if (length(offsets)-1 > 0) {",
+			"       for i in range(0, length(offsets)-2) {",
+			"           Array2 = []",
+			"           array_push(Array2, dword_be(array_pop(Array) + offsets[i]) & mask)",
+			"           Array = Array2",
+			"       }",
+			"   }",
+			"   return lastType(array_pop(Array) + offsets[length(offsets)-1])",
+			"}"
 		],
 		"description": "Returns the total amount of bits activated in the specified range and address."
 	},
