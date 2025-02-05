@@ -4,9 +4,21 @@
 menu = byte(0x3d9888)
 submenu = byte(0x3d9889)
 screen = dword(0x3d9a20)
+pointer = tbyte(0x3bde08)
 
-function L(x) => low4(tbyte(0x3bde08) + x)
-function H(x) => high4(tbyte(0x3bde08) + x)
+function L(x) => low4(pointer + x)
+function H(x) => high4(pointer + x)
+
+function titles(type, extra) {
+    charMission = ["It’s-a Mario Time!","Playing Second-Fiddle No More","Feeling Just Peachy","Hi I'm Daisy!",
+                   "No Longer Just a Pet","The King of Koopas","Brent Screams in the Distance",
+                   "Maybe Now He’ll Get into Smash","Feed Me More Bananas","The Prince of Koopas",
+                   "The Fastest Hedgehog Around","I Want to Fly High","Unlike Sonic, He Don’t Chuckle",
+                   "The Tarot Cards Read True","I Am, I Am All of Me","A Genius Mastermind of 300 IQ",
+                   "What Do You Mean This Gig Doesn’t Pay?!","Fear the Power of the Flames","It’s No Use",
+                   "The Perfect Copy, Minus a Few Bolts",]
+    if (type == "charMission") return charMission[extra]
+}
 
 place = {
     0: "Frostown",
@@ -15,6 +27,29 @@ place = {
     3: "Cubyrinth",
     4: "Icepeak",
     5: "Blizland",
+}
+
+character = {
+    0x00:"Mario",
+    0x01:"Luigi",
+    0x02:"Peach",
+    0x03:"Daisy",
+    0x04:"Yoshi",
+    0x05:"Bowser",
+    0x06:"Wario",
+    0x07:"Waluigi",
+    0x08:"Donkey Kong",
+    0x09:"Bowser Jr.",
+    0x0a:"Sonic",
+    0x0b:"Tails",
+    0x0c:"Knuckles",
+    0x0d:"Amy",
+    0x0e:"Shadow",
+    0x0f:"Dr. Eggman",
+    0x10:"Vector",
+    0x11:"Blaze",
+    0x12:"Silver",
+    0x13:"Metal Sonic",
 }
 
 missions = {
@@ -176,6 +211,21 @@ items = {
     ],
 }
 
+events = {
+    "Olympic":  [[0x3AC,"Alphine Skiing GS"],[0x3AE,"Ski Jumping LH"],[0x3B0,"Moguls"],
+                 [0x3B2,"Cross-Country"],[0x3B3,"Biathlon"],[0x3B5,"Nordic Combined"],
+                 [0x3B7,"Snowboard Cross"],[0x3B9,"Speed Skating 500m"],[0x3BA,"Short Track 500m"],
+                 [0x3BC,"Figure Skating"],[0x3BE,"Bobsleigh"],[0x3C0,"Skeleton"],
+                 [0x3C1,"Luge"],[0x3C2,"Ice Hockey"],[0x3C4,"Curling"]],
+    "Dream":    [[0x3AD,"Supersonic Downhill"],[0x3AF,"Rocket Ski Jumping"],[0x3B1,"Ski Cross Racing"],
+                 [0x3B4,"Ski Shooting"],[0x3B6,"Deluxe Halfpipe"],[0x3B8,"Extreme Snowboarding"],
+                 [0x3BB,"Intense Short Track"],[0x3BD,"Ultimate Figure Skating"],[0x3BF,"Blazing Bobsleigh"],
+                 [0x3C3,"Fever Hockey"],[0x3C5,"Curling Bowling"],[0x3C6,"Snow Machine Fight"]],
+}
+
+years = [[2006,2002],[1998,1994,1992],[1988,1984,1980],[1976,1972],
+         [1968,1964,1960],[1956,1952],[1948],[1936,1932],[1928,1924]]
+
 function missionCalc(i, x) {
     Array = []
     for j in range (0, length(missions[i]) -1) {
@@ -198,18 +248,95 @@ function itemCalc(i) {
     return sum_of(Array, y => prev(y)) == length(Array) - 1 && measured(sum_of(Array, y => y) == length(Array))
 }
 
+function charCalc(char) {
+    Array = []
+    val = 1
+    bitCalc=0
+    bitCalc = (char%2)*10
+    offsetCalc = char/2*4
+    for i in range(0,9) {
+        array_push(Array, bit(i+bitCalc,pointer+0x718+offsetCalc)*val)
+        val=val+val
+    }
+    return sum_of(Array, y => prev(y)) == 9 && sum_of(Array, y => y) == 10
+}
+
+
+function medalCalc(diff,evnt) {
+    Array = []
+    bitCalc = diff*2
+    offset = pointer+evnt
+    array_push(Array, bit(bitCalc,offset) + bit(bitCalc+1,offset))
+    return sum_of(Array, y => prev(y)) < 2 && sum_of(Array, y => y) == 2
+}
+
+function memorabiliaCalc(decade,code) {
+    comb = []
+    neg = [0]
+    pos = []
+    for i in range(0,decade) {
+        if (i!=decade)
+        for j in range(0,length(years[i])-1) {
+            if (years[i][j] <= 1948) bits = 2
+            else if (years[i][j] > 1948 && years[i][j] < 1976) bits = 3
+            else bits = 4
+            for l in range(1,bits)
+            array_push(neg, l/l)
+        }
+        if (i==decade)
+        for j in range(0,length(years[i])-1) {
+            if (years[i][j] <= 1948) bits = 2
+            else if (years[i][j] > 1948 && years[i][j] < 1976) bits = 3
+            else bits = 4
+            for l in range(1,bits) {
+                if (j == 0) ext = 0
+                else ext = 1
+                array_push(pos, l/l)
+                array_push(comb, bit((sum_of(pos,y=>y)+sum_of(neg,y=>y))%8+7,pointer+0x8C3+(sum_of(pos,y=>y)+sum_of(neg,y=>y))/8))
+            }
+        }
+    }
+    if (code == "ach") return sum_of(comb, y => prev(y)) <= length(comb)-1 && measured(sum_of(comb, y => y) == length(comb))
+    else if (code == "pon") {
+        if (length(comb) < 3) pon = 2
+        else if (length(comb) >= 3 && length(comb) < 5) pon = 4
+        else if (length(comb) >= 5 && length(comb) < 8) pon = 5
+        else if (length(comb) >= 8 && length(comb) < 13) pon = 10
+        return pon
+    }
+    
+}
+
+function yearDes(yr) {
+    Array = []
+    for i in range(0,length(years[yr])-1) {
+        if (i == 0) array_push(Array, format("{0}",years[yr][length(years[yr])-1-i]))
+        else if (i > 0 && i < length(years[yr])-1) array_push(Array, format("{0}, {1}",array_pop(Array),years[yr][length(years[yr])-1-i]))
+        else if (i == length(years[yr])-1) array_push(Array, format("{0} and {1}",array_pop(Array),years[yr][length(years[yr])-1-i]))
+    }
+    return format("{0}",array_pop(Array))
+}
+
+function triviaCalc() {
+    Array = []
+    for i in range(0,19) {
+        array_push(Array, bit(i,pointer+0x8C0))
+    }
+    return sum_of(Array, y => prev(y)) < length(Array) && measured(sum_of(Array, y => y) == length(Array))
+}
+
 for i in range (0, length(missions) -1) {
     start = once(screen == 0x51)
     nstart = never(screen == 0x1d || screen == 0x27)
     achievement(
-    title = format("{0}'s Mission",place[i]), points = 10,
-    description = format("Complete all Missions in {0} on any Rank",place[i]),
-    trigger = nstart && measured(always_true(), when=start) && missionCalc(i,3)
+        title = format("{0}'s Mission",place[i]), points = 10,
+        description = format("Complete all Missions in {0} on any Rank",place[i]),
+        trigger = nstart && measured(always_true(), when=start) && missionCalc(i,3)
     )
     achievement(
-    title = format("Pure Gold in {0}",place[i]), points = 10,
-    description = format("Complete all Missions in {0} on Gold Rank",place[i]),
-    trigger = nstart && measured(always_true(), when=start) && missionCalc(i,4)
+        title = format("Pure Gold in {0}",place[i]), points = 10,
+        description = format("Complete all Missions in {0} on Gold Rank",place[i]),
+        trigger = nstart && measured(always_true(), when=start) && missionCalc(i,4)
     )
     /*achievement(
     title = format("{0}'s Items",place[i]), points = 10,
@@ -217,3 +344,44 @@ for i in range (0, length(missions) -1) {
     trigger = measured(always_true(), when=menu == 16 && submenu == 1) && itemCalc(i)
     )*/
 }
+
+for i in range(0,length(character)-1) {
+    achievement(
+        title = format("{0}",titles("charMission",i)), points = 3,
+        description = format("Complete 10 Missions as {0}",character[i]),
+        trigger =  screen != 0x1f && charCalc(i)
+    )
+}
+
+for i in range(0,1) {
+    ttl = ["Qualifier","Medalist","Olympian"]
+    des = ["Easy","Normal","Hard"]
+    eventType = [["Olympic","Gold"],["Dream","1st"]]
+    evnt = eventType[i][0]
+    medl = eventType[i][1]
+    for j in range(0,length(events[evnt])-1) {
+        for l in range(0,2) {
+            if (l != 2) hg = " or higher"
+            else hg = ""
+            achievement(
+                title = format("{0} {1}",events[evnt][j][1],ttl[l]), points = 2+l+l/2,
+                description = format("Win a {3} Medal in {0} on {1} difficulty{2}",events[evnt][j][1],des[l],hg,medl),
+                trigger =  screen != 0x1f && medalCalc(l,events[evnt][j][0])
+            ) 
+        }
+    }
+}
+
+for i in range(0,length(years)-1) {
+    achievement(
+        title = format("{0}'s Memorabilia Collector",2000-i*10), points = memorabiliaCalc(i,"pon"),
+        description = format("Collect all Memorabilia from the {0} Winter Olympics",yearDes(i)),
+        trigger =  screen != 0x1f && memorabiliaCalc(i,"ach")
+    )
+}
+
+achievement(
+    title = format("Trivia Master"), points = 25,
+    description = format("Collect all Olympic Trivia"),
+    trigger =  screen != 0x1f && triviaCalc()
+)

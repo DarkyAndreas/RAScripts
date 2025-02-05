@@ -31,7 +31,8 @@ DifficultyType = {
 DifficultyText = {
     1:"Easy",
     2:"Normal",
-    3:"Hard"
+    3:"Hard",
+    4:"Time Attack"
 }
 
 HUD = {
@@ -47,6 +48,11 @@ QuoteHP = {
 QuoteMaxHP = {
     "US": word(0x0bdb68),
     "JP": word(0x0bf444),
+}
+
+QuoteAir = {
+    "US": word(0x0bdb74),
+    "JP": word(0x0bf450),
 }
 
 BossHP = {
@@ -139,7 +145,12 @@ InputCheck = {
     "JP": bit6(0x0bf468),
 }
 
-Text = {
+TextPointer = {
+    "US": dword(0x0d3f14),
+    "JP": dword(0x0d5724),
+}
+
+TextOffset = {
     "US": dword(0x0d3f1c),
     "JP": dword(0x0d572c),
 }
@@ -147,6 +158,11 @@ Text = {
 TextState = {
     "US": byte(0x0d3f18),
     "JP": byte(0x0d5728),
+}
+
+TextSelection = {
+    "US": byte(0x0d3f44),
+    "JP": byte(0x0d5754),
 }
 
 StoryCurlyDeath = {
@@ -162,6 +178,11 @@ StoryDoctor2 = {
 StoryDoctor = {
     "US": bit7(0x0d7e22),
     "JP": bit7(0x0d9632),
+}
+
+StoryBallos = {
+    "US": bit0(0x0d7e4c),
+    "JP": bit0(0x0d965c),
 }
 
 StoryHearts = {
@@ -219,7 +240,9 @@ BossRoom = {
     17:0x41,
     18:0x44,
     19:0x52,
-    20:0x62,
+    20:0x57,
+    21:0x62,
+    22:0x65,
 }
 
 BossRoomName = {
@@ -242,6 +265,7 @@ BossRoomName = {
     17:"The King's Table",
     18:"Black Space",
     19:"Blood Stained Sanctuary - B3",
+    20:"Seal Chamber",
 }
 
 Boss = {
@@ -264,6 +288,7 @@ Boss = {
     17:"Doctor",
     18:"Undead Core",
     19:"Heavy Press",
+    20:"Ballos"
 }
 
 BossTitle = {
@@ -358,8 +383,9 @@ Ending = {
 
 
 
-function cheevo0(region, i, j) {
-    return dword(0xffe00c) == Code[region] && HUD[region] != 0 && Room[region] == i && Text[region] == j
+function cheevo0(region, i, text) {
+    return dword(0xffe00c) == Code[region] && HUD[region] != 0 && Room[region] == i
+        && ascii_string_equals(TextPointer[region] + TextOffset[region], text)
 }
 
 function cheevo0S(region) {
@@ -983,19 +1009,19 @@ function UndeadCoreAchievementLogic(region)
 achievement(
     title = "?!", points = 2,
     description = "Try to open the door in 'First Cave'",
-    trigger = cheevo0("US", 0x0c, 0x06f7) || cheevo0("JP", 0x0c, 0x06ea)
+    trigger = cheevo0("US", 0x0c, "") || cheevo0("JP", 0x0c, "")
 )
 
 achievement(
-    title = "Not a Pro Yet", points = 2,
+    title = "Not a Pro Yet", points = 2,    
     description = "Refuse Balrogs offer in 'Shack'",
-    trigger = cheevo0("US", 0x0e, 0x124f) || cheevo0("JP", 0x0e, 0x119a)
+    trigger = cheevo0("US", 0x0e, "") || cheevo0("JP", 0x0e, "")
 )
 
 achievement(
     title = "Gone for Good?", points = 2,
     description = "Read a Sign that has been left by Tetsuzou Kamadani in 'Hermit Gunsmith'",
-    trigger = cheevo0("US", 0x5a, 0x1080) || cheevo0("JP", 0x5a, 0x0dff)
+    trigger = cheevo0("US", 0x5a, "") || cheevo0("JP", 0x5a, "")
 )
 
 achievement(
@@ -1007,7 +1033,7 @@ achievement(
 achievement(
     title = "Nowhere to Go", points = 2,
     description = "Congrats on reaching the end in 'Balcony'",
-    trigger = cheevo0("US", 0x3e, 0x0902) || cheevo0("JP", 0x3e, 0x8d9)
+    trigger = cheevo0("US", 0x3e, "End of the road!") || cheevo0("JP", 0x3e, "IKIDOMARI!!")
 )
 
 achievement(
@@ -1389,9 +1415,8 @@ achievement(
 
 function StartBoss(region, i, j)
 {
-    if(i==19)
-    return dword(0xffe00c) == Code[region] && Difficulty[region] == DifficultyType[j] && __ornext(Room[region] == BossRoom[i]
-    || Room[region] == BossRoom[i+1]) && prev(BossHUD[region]) == 0 && BossHUD[region] == 1
+    if(i>=19)
+    return dword(0xffe00c) == Code[region] && Difficulty[region] == DifficultyType[j] && Room[region] == BossRoom[i + (j/4)*2] && prev(BossHUD[region]) == 0 && BossHUD[region] == 1
 else
     return dword(0xffe00c) == Code[region] && Difficulty[region] == DifficultyType[j] && Room[region] == BossRoom[i]
     && prev(BossHUD[region]) == 0 && BossHUD[region] == 1
@@ -1399,7 +1424,8 @@ else
 
 function CancelBoss(region)
 {
-    return unless(dword(0xffe00c) != Code[region]) && __ornext(HUD[region] == 0 || QuoteHP[region] >= 0xf000 || QuoteHP[region] == 0x00)
+    return unless(dword(0xffe00c) != Code[region]) && __ornext(HUD[region] == 0 || QuoteHP[region] >= 0xf000
+        || QuoteHP[region] == 0x00 || QuoteAir[region] == 0)
 }
 
 function SubmitBoss(region, i)
@@ -1408,6 +1434,8 @@ function SubmitBoss(region, i)
     return QuoteX[region] >= 0x001a3000 && prev(BossHUD[region]) == 1 && BossHUD[region] == 0 }
 else if(i==17) {
     return prev(StoryDoctor2[region] + StoryDoctor[region]) < 0x02 && StoryDoctor2[region] + StoryDoctor[region] == 0x02 }
+else if(i==20) {
+    return prev(StoryBallos[region]) == 1 && prev(BossHUD[region]) == 1 && BossHUD[region] == 0 }
 else {
     return prev(BossHUD[region]) == 1 && BossHUD[region] == 0 }
 }
@@ -1430,6 +1458,10 @@ function priorMeasuredValueHUD(region)
 function MeasuredTally(region)
 {
     return measured(tally(0,prev(IngameTime[region]) != IngameTime[region]), when=dword(0xffe00c) == Code[region])
+}
+function MeasuredTallyStoryBSS(region)
+{
+    return measured(tally(0,HUD[region] != 4 && HUD[region] != 5 && prev(IngameTime[region]) != IngameTime[region]), when=dword(0xffe00c) == Code[region])
 }
 
 function StartEnding(region, i, j)
@@ -1465,10 +1497,16 @@ function SubmitEnding(region, i)
     return Music[region] == 0x21 && EndingCheck[region] == 0x01 }
 }
 
-function StartAndSubmitStoryBSS(region, j)
+function StartStoryBSS(region, j)
 {
-    return dword(0xffe00c) == Code[region] && Difficulty[region] == DifficultyType[j] && HUD[region] != 0 && prior(Room[region]) == 0x47
-    && prev(Music[region]) == 0x00 && Music[region] == 0x21
+    return dword(0xffe00c) == Code[region] && Difficulty[region] == DifficultyType[j] && HUD[region] != 0 && prior(Room[region]) == 0x4f
+    && Room[region] == 0x50
+}
+
+function SubmitStoryBSS(region, j)
+{
+    return dword(0xffe00c) == Code[region] && Difficulty[region] == DifficultyType[j] && HUD[region] != 0 && prior(Room[region]) == 0x5b
+    && Room[region] == 0x5c
 }
 
 function CancelStoryBSS(region)
@@ -1492,11 +1530,14 @@ function CancelTABSS(region)
     return dword(0xffe00c) == Code[region] && HUD[region] == 0 && Room[region] < 0x60 
 }
 
-for j in range (1, 3) {
-    for i in range (1, 19) {
+for j in range (1, 4) {
+    for i in range (1, 20) {
+    if (j<4) {d="Difficulty " t="on" }
+    else {d="" t="in" }
+    if (j==4 && i>=19 || j<4 && j*10+i!=43)
     leaderboard(
-        title = format("{0} in {1} - {2} Difficulty", Boss[i], BossRoomName[i], DifficultyText[j]),
-        description = format("Defeat {0} in {1} on {2} Difficulty as fast as possible", Boss[i], BossRoomName[i], DifficultyText[j]),
+        title = format("{0} in {1} - {2} {3}", Boss[i], BossRoomName[i], DifficultyText[j],d),
+        description = format("Defeat {0} in {1} {4} {2} {3}as fast as possible", Boss[i], BossRoomName[i], DifficultyText[j],d,t),
         start = StartBoss("US", i, j) || StartBoss("JP", i, j),
         cancel = CancelBoss("US") || CancelBoss("JP"),
         submit = SubmitBoss("US", i) || SubmitBoss("JP", i),
@@ -1531,10 +1572,10 @@ for i in range (1, 3) {
     leaderboard(
         title = format("Blood Stained Sanctuary - Story Mode - {0} Difficulty", DifficultyText[i]),
         description = format("Complete Blood Stained Sanctuary in Story Mode on {0} Difficulty as fast as possible", DifficultyText[i]),
-        start = StartAndSubmitStoryBSS("US", i) || StartAndSubmitStoryBSS("JP", i),
+        start = StartStoryBSS("US", i) || StartStoryBSS("JP", i),
         cancel = CancelStoryBSS("US") || CancelStoryBSS("JP"),
-        submit = StartAndSubmitStoryBSS("US", i) || StartAndSubmitStoryBSS("JP", i),
-        value = max_of(priorMeasuredValueHUD("US"), priorMeasuredValueHUD("JP")), format="FRAMES", lower_is_better=true, id=0)
+        submit = SubmitStoryBSS("US", i) || SubmitStoryBSS("JP", i),
+        value = max_of(MeasuredTallyStoryBSS("US"), MeasuredTallyStoryBSS("JP")), format="FRAMES", lower_is_better=true, id=0)
 }
 
 leaderboard(

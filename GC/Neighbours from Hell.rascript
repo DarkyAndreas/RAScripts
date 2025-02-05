@@ -318,7 +318,7 @@ for i in range (0, length(sceneName)-1) {
     else dc = "bonus "
     achievement(
     title = format("{0}",titles["Progression"]["Impossible"][i]), points = 5, type = tp,
-    description = format("Complete the {1}episode \"{0}\" in Impossible mode",sceneNumb[i+0x38], dc),
+    description = format("Complete the {1}episode \"{0}\" in Impossible mode",sceneNumb[i], dc),
     trigger =  check && prev(impossible) == i && impossible == i+1
     )
 }
@@ -512,6 +512,19 @@ life = {
     1: "1 Life",
     2: "2 Lives",
     3: "3 Lives",
+}
+
+function triggerTest(lang,i) {
+    currentState = stats[lang][i]
+    return languageCheck(language[lang]) && dword_be(currentState + 8) == 3
+}
+
+for i in range (0, length(sceneName)-1) {
+    achievement(
+    title = format("Testing {0}",sceneNumb[i+0x38]), points = 0,
+    description = format("Testing"),
+    trigger =  trigger_when(!check) && never(all_of(sceneCalc(i), y=>scene != y)) && alts(triggerTest,i)
+    )
 }
 
 

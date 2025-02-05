@@ -382,10 +382,12 @@ for i in range (0, 3) {
             function ranksCalc(i, j) => byte(stageRank[i][j] + 0) <= 5
                      && byte(stageRank[i][j] + 1) <= 5 && byte(stageRank[i][j] + 2) <= 5
                      && byte(stageRank[i][j] + 3) <= 5 && byte(stageRank[i][j] + 4) <= 5
+            if (stageName[i][j] == "Cannon's Core") stageCalc = stage >= stageNumb[i][j] && stage <= stageNumb[i][j]+4
+            else stageCalc = stage == stageNumb[i][j]
             achievement(
                 title = format("{0} Aced", stageName[i][j]), points = 10,
                 description = format("Get an A rating on every mission."),
-                trigger =  measured(always_true(), when=ingame <= 2) && state == 16 && stage == stageNumb[i][j]
+                trigger =  measured(always_true(), when=ingame <= 2) && state == 16 && stageCalc
                         && /*ranksCalc(i, j)*/ byte(0x26a690) == 0
                         && prev(ranks(i, j, 5)) < 5 && measured(ranks(i, j, 5) == 5)
             )
