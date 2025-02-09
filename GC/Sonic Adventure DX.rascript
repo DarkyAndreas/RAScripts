@@ -47,7 +47,6 @@ flagPause = byte(0x00565b19)
 flagController = byte(0x00566be0)
 flagTime = byte(0x00592fcb)
 
-
 demoProtection = demo != 0
 startCha = ctime == 0 && prev(state) == 4
 failCha = demoProtection || state == 0x15 || ctime == 0 && prev(state) != 4 && state == 4
@@ -722,12 +721,25 @@ function interaction(i) {
     bits = pointerChain([0x00],bitcount)
     val = action
     groundCheck = pointerChain([0x05],bit0)
-    if (i == "jumpS")  logic = prev(val) != 0x08 && prev(groundCheck) == 1 && val == 0x08 && groundCheck == 0
-    else if (i == "jump")  logic = prev(val) != 0x06 && prev(groundCheck) == 1 && val == 0x06 && groundCheck == 0
-    else if (i == "ground") logic = prev(val) != 0x01 && prev(val) != 0x02 && __ornext(val == 0x01 || val == 0x02) && prev(val) != val && groundCheck == 1
-    else if (i == "groundJump") logic = prev(val) != 0x06 && prev(val) != 0x18 && prev(groundCheck) == 1 && val == 0x06 && groundCheck == 0
-    else if (i == "flyT") logic = prev(val) != val && prev(val) != 0x3d && val == 0x0f
-    else if (i == "flyK") logic = prev(val) != val && val == 0x0b
+    
+    if (i == "jumpS")
+    //logic = prev(val) != 0x08 && prev(groundCheck) == 1 && val == 0x08 && groundCheck == 0
+    logic = prev(controlA) == 0 && controlA == 1 && action != 0x04 && action < 0x08 && state == 0x0f
+    else if (i == "jump")
+    logic = prev(val) != 0x06 && prev(groundCheck) == 1 && val == 0x06 && groundCheck == 0
+    else if (i == "groundJump")
+    logic = prev(val) != 0x06 && prev(val) != 0x18 
+    && prev(groundCheck) == 1 && val == 0x06 && groundCheck == 0
+    else if (i == "groundK")
+    logic = prev(val) != 0x01 && prev(val) != 0x02 && prev(val) != 0x0a && prev(val) != 0x0d && prev(val) != 0x1a
+    && __ornext(val == 0x01 || val == 0x02) && prev(val) != val && groundCheck == 1
+    else if (i == "groundT")
+    logic = prev(val) != 0x01 && prev(val) != 0x02 && prev(val) != 0x0b && prev(val) != 0x0c && prev(val) != 0x14
+    && __ornext(val == 0x01 || val == 0x02) && prev(val) != val && groundCheck == 1
+    else if (i == "flyT")
+    logic = prev(val) != val && prev(val) != 0x3d && val == 0x0f
+    else if (i == "flyK")
+    logic = prev(val) != val && val == 0x0b
     i = []
     array_push(i, logic)
     return i
@@ -765,7 +777,7 @@ function funcCalcP(func, val, pause) {
            || unless(pause) && never(tally_of(func, val+1, y=>y)) && always_false()
 }
 
-function funcCalcS(cal,start,character) {
+function funcCalcS(cal,start,end) {
     func = []
     func2 = []
     for i in range (0, length(cal)-1) {
@@ -777,7 +789,7 @@ function funcCalcS(cal,start,character) {
     }
     return measured(tally_of(func, 999, y=>y), when=once(start)) && trigger_when(always_false())
            || unless(tally_of(func2, 1, y=>y)) && //never(always_true()) //RATools refuses to create an always_true() ResetIf
-           never(char == character) && always_false()
+           never(any_of(end, y=>char == y)) && always_false()
 }
 
 function multCalc(val,log) {
@@ -791,6 +803,22 @@ function multCalc(val,log) {
                                       && baseChain(dword_be(0x006b3e50+(i-1)*4),[0x00],byte) == 0x11
         for j in range (1,i) {
            array_push(Array, logic)
+        }
+    }
+    return Array
+}
+
+function charlie() {
+    Array = []
+    monitor1X = baseChain(npc,[0x1d],float_be) == -312.839996
+    monitor1Z = baseChain(npc,[0x25],float_be) == -743.950012
+    monitor2X = baseChain(npc,[0x1d],float_be) == -315.869995
+    monitor2Z = baseChain(npc,[0x25],float_be) == -749.0
+    monitor = [[monitor1X,monitor1Z],[monitor2X,monitor2Z]]
+    seaCheck = [0x007aa4a3,0x007aa4e2,0x007aa51f,0x007aa55d,0x007aa5db,0x007aa59c]
+    for i in range(0, length(character)-2) {
+        for j in range(0,1) {
+            array_push(Array, char == i && byte(seaCheck[i]) == 0 && sub == j && prev(monitor[j][0]) && prev(monitor[j][1]))
         }
     }
     return Array
@@ -852,11 +880,12 @@ achievement(
 
 achievement(
     title = "I Feel a Burning in My Core", points = 10,
-    description = "As Sonic complete Red Mountain without using more than 4 rockets, springs or ziplines",
+    description = "As Sonic complete Red Mountain without using more than 4 rockets, springs, ladders or ziplines",
     trigger =  (never(failCha || stage != stageID("Red Mountain") || demoProtection || char != 0 && char != 6)
             && once(startCha)
             && trigger_when(clearCheck))
-            || funcCalc([(__ornext(action == 0x09 || action == 0x0a || action == 0x14 || action == 0x24) && prev(action) != action)],4)
+            || funcCalc([(__ornext(action == 0x09 || action == 0x0a || action == 0x14 || action == 0x24) && prev(action) != 0x25
+            && prev(action) != action)],4)
 )
 
 achievement(
@@ -875,9 +904,8 @@ achievement(
             && trigger_when(clearCheck)
             || funcCalcS([once(always_true()),
                     tally_of(multCalc(5,"ring"), 1,y=>y && never(ring < prev(ring))),
-                    deduct(prev(controlA) == 0 && controlA == 1
-                    && action != 0x04 && action < 0x08 && state == 0x0f
-                    && never(ring < prev(ring)))],startCha,0))
+                    deduct(all_of(interaction("jumpS"),y=>y)
+                    && never(ring < prev(ring)))],startCha,[0,6]))
 )
 
 achievement(
@@ -896,7 +924,7 @@ achievement(
     trigger =  (never(failCha || stage != stageID("Windy Valley") || demoProtection || char != 1)
             && once(startCha)
             && trigger_when(clearCheck))
-            || funcCalc(interaction("ground"),2)
+            || funcCalc(interaction("groundT"),2)
 )
 
 achievement(
@@ -923,7 +951,7 @@ achievement(
     trigger =  (never(failCha || stage != stageID("Sky Deck") || demoProtection || char != 1)
             && once(startCha) && ftime < 0x003200
             && trigger_when(clearCheck))
-            || funcCalcP(interaction("ground"),5,once(state == 0x0f && never(once(action == 0x2d))))
+            || funcCalcP(interaction("groundT"),5,once(state == 0x0f && never(once(action == 0x2d))))
 )
 
 achievement(
@@ -941,7 +969,7 @@ achievement(
     trigger =  (never(failCha || stage != stageID("Speed Highway") || demoProtection || char != 2)
             && once(startCha)
             && trigger_when(clearCheck))
-            || funcCalc(interaction("ground"),5)
+            || funcCalc(interaction("groundK"),5)
 )
 
 achievement(
@@ -1060,7 +1088,7 @@ achievement(
                     tally_of(objectCheck(types["ring"], "ring"), 1,y=>y),
                     deduct((prev(anim) != 0x70) &&
                     anim == 0x70 &&
-                    never(ring < prev(ring)))],startChaGamma,5)
+                    never(ring < prev(ring)))],startChaGamma,[5])
 )
 
 achievement(
@@ -1084,11 +1112,11 @@ achievement(
     description = format("Find a secret message on the Egg Carrier for someone called \"Charlie\""),
     trigger =  progressCheck
         && stage == stageID("outside the Egg Carrier")
-        && dialog == 0xe4 && npc == 0
+        && npc == 0 && any_of(charlie(), y=>y)
 )
 
 achievement(
-    title = format("I'm Pretty Proud of Myself"), points = 2,
+    title = format("I'm Pretty Proud of Myself"), points = 10,
     description = format("As Sonic in Casinopolis earn at least 5000 Rings to build up a golden suprise"),
     trigger =  progressCheck && __ornext(char == 0 || char == 6)
         && stage == stageID("Casinopolis")
