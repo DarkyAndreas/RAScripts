@@ -1,6 +1,20 @@
 // Sonic Adventure 2
 // #ID = 3417
 
+function baseChain(first,offsets,lastType) {
+    type = tbyte
+    bitwise = 0xffffffff
+    Array = [type(first) & bitwise]
+    if (length(offsets) > 1) {
+        for i in range(0, length(offsets)-2) {
+            Array2 = []
+            array_push(Array2, type(array_pop(Array) + offsets[i]) & bitwise)
+            Array = Array2
+        }
+    }
+    return lastType(array_pop(Array) + offsets[length(offsets)-1])
+}
+
 demo = byte(0x26a203)
 story = byte(0x26a200)
 state = byte(0x24EE60)
@@ -20,6 +34,8 @@ results = dword(tbyte(tbyte(tbyte(0x0fb7d0) + 0x04) + 0x2C) + 0x00)
 clearcheck =  byte(0x0db222) == 1 && byte(0x0db226) == 1 && stageclear == 0
 clearChallenge = once(prev(time) == 0 && time > 0) && clearcheck
 timeMeasure = measured(byte(0x0db227) * 3600 + byte(0x0db228) * 60 + byte(0x0db229))
+saveCheck = prev(byte(0x26a690)) == 0 && byte(0x26a690) == 0
+kart = dword(tbyte(0x7e4afc) + 0x25C)
 
 stagelookup = {}
 sdesclookup = {}
@@ -270,19 +286,19 @@ bossChar = {
 function emblemLogic(i) {
     if (i == 0) {
     return /*all_of(heroemblemsCalc, y=>y)*/
-        byte(0x26a690) == 0
+        saveCheck
         && sum_of(heroemblems, y=>prev(y)) + sum_of(hspecemblem, y=>prev(y)) < 84
         && measured(sum_of(heroemblems, y=>y) + sum_of(hspecemblem, y=>y) == 84)
     }
     else if (i == 1) {
     return /*all_of(darkemblemsCalc, y=>y)*/
-        byte(0x26a690) == 0
+        saveCheck
         && sum_of(darkemblems, y=>prev(y)) + sum_of(dspecemblem, y=>prev(y)) < 74
         && measured(sum_of(darkemblems, y=>y) + sum_of(dspecemblem, y=>y) == 74)
     }
     else if (i == 2) {
     return /*all_of(heroemblemsCalc, y=>y) && all_of(darkemblemsCalc, y=>y) && all_of(lastemblemsCalc, y=>y)*/
-        byte(0x26a690) == 0
+        saveCheck
         && sum_of(heroemblems, y=>prev(y)) + sum_of(hspecemblem, y=>prev(y))
         +  sum_of(darkemblems, y=>prev(y)) + sum_of(dspecemblem, y=>prev(y))
         +  sum_of(lastemblems, y=>prev(y)) + sum_of(lspecemblem, y=>prev(y)) < 180
@@ -316,7 +332,7 @@ function startandsubmitBR(i) => story == 12 + i && state == 16 && prev(dword(0x2
 for i in range (0, 3) {
     for j in range (0, length(stageNumb[i])-1) {
         if (i == 1) punct = "!"
-        else punct = "."
+         else punct = "."
         if (i < 3) tp = "progression"
         else tp = ""
         if (stageNumb[i][j] == 70) {
@@ -327,11 +343,13 @@ for i in range (0, 3) {
             sdesclookup[stageNumb[i][j]] = format("{0}{1}",stageDescS[i][j],substring(stageDesc[i][j], 1))
             if (i < 3) sdesclookup[300 + stageNumb[i][j]] = format(stageTime[i][j])
         }
+        if (i < 3) end = byte(stageRank[i][j]) == 0
+        else end = always_true()
         achievement(
             title = format("{0}", stageName[i][j]), points = 3, type = tp,
             description = format("{0}{1}", stageDesc[i][j], punct),
             trigger =  state == 16 && check && story == (i+1)%4
-                    && clearcheck
+                    && clearcheck && end
         )
         stagelookup[stageNumb[i][j]] = stageName[i][j]
         array_push(stagearrayC, stage != stageNumb[i][j])
@@ -388,22 +406,19 @@ for i in range (0, 3) {
                 title = format("{0} Aced", stageName[i][j]), points = 10,
                 description = format("Get an A rating on every mission."),
                 trigger =  measured(always_true(), when=ingame <= 2) && state == 16 && stageCalc
-                        && /*ranksCalc(i, j)*/ byte(0x26a690) == 0
+                        && /*ranksCalc(i, j)*/ saveCheck
                         && prev(ranks(i, j, 5)) < 5 && measured(ranks(i, j, 5) == 5)
             )
             if (i == 0) {
-                array_push (heroemblems, //ranks(i, j, 25.0) +// ← complete idiot since this is useless
-                ranksDiv(i, j))
+                array_push (heroemblems,ranksDiv(i, j))
                 array_push (heroemblemsCalc, ranksCalc(i, j))
             }
             if (i == 1) {
-                array_push (darkemblems, //ranks(i, j, 25.0) +// ← complete idiot since this is useless
-                ranksDiv(i, j))
+                array_push (darkemblems,ranksDiv(i, j))
                 array_push (darkemblemsCalc, ranksCalc(i, j))
             }
             if (i == 2) {
-                array_push (lastemblems, //ranks(i, j, 25.0) +// ← complete idiot since this is useless
-                ranksDiv(i, j))
+                array_push (lastemblems,ranksDiv(i, j))
                 array_push (lastemblemsCalc, ranksCalc(i, j))
             }
         }
@@ -412,26 +427,24 @@ for i in range (0, 3) {
         function specCalc(i, x) {
             for il in range (0, length(emblemSpec[i])-1) {
                 array_push (x, byte(emblemSpec[i][il])/byte(emblemSpec[i][il]))
-                //array_push (y, byte(emblemSpec[i][il]) <= 1) 
             }
         }
-        if (i == 0) specCalc(i, hspecemblem)
-        if (i == 1) specCalc(i, dspecemblem)
-        if (i == 2) specCalc(i, lspecemblem)
+        cur = [hspecemblem,dspecemblem,lspecemblem]
+        
         if (i < 2) check = byte(0x24ee6c) == i
         else check = always_true()
-        
+        rnk = byte(0x26c47e+i)
         achievement(
             title = format("{0}", storyName[i][0]), points = 10 + (i/2 * 15), type = "progression",
             description = format("Complete {0} Story {1}", storyDesc[i][0], storyDesc[i][1]),
             trigger =  prior(state) == 19 && state == 0 && stageloaded == storyNumb[i][0] && story == i+1
-                    && check && prev(stageclear) == 0 && stageclear == 1
+                    && check && prev(rnk) == 0 && rnk == 1
         )
         achievement(
             title = format("{0}", emblemName[i][0]), points = 25,
             description = format("{0}", emblemDesc[i][0]),
             trigger =  measured(always_true(), when=ingame <= 2) && __ornext(state == 16 || story == i+1)
-            && dword(0x5cc2f8) != 0x09 && byte(0x26a690) == 0 && emblemLogic(i)
+            && dword(0x5cc2f8) != 0x09 && saveCheck && emblemLogic(i)
         )
     }
     else {
@@ -457,7 +470,7 @@ for i in range (0, 5) {
     achievement(
     title = format("{0}", upgradeName[i][0]), points = 5,
     description = format("{0}", upgradeDesc[i][0]),
-    trigger = measured(always_true(), when=ingame <= 2) && state == 16 && byte(0x26a690) == 0 && upgradeLogic(i)
+    trigger = measured(always_true(), when=ingame <= 2) && state == 16 && saveCheck && upgradeLogic(i)
     )
 }
 
@@ -547,7 +560,7 @@ for i in range (0, 2) {
         title = format("Time Trial {0} Karting", kartName[i][0]), points = 5,
         description = format("Achieve a new best time of under {0} on the {1} kart race", kartDesc[i][0], kartDesc[i][1]),
         trigger =  stage == 71 && course == 24 + i && prev(courseclear) == 0 && courseclear == 1
-                && dword(playerPointer + 0x15BC) == 1
+                && kart == 1
                 && rtime < courseTime[i][0]
     )
     if (i == 0) p = 8
@@ -556,33 +569,33 @@ for i in range (0, 2) {
         title = format("{0}", dlcName[i][0]), points = 2 + p,
         description = format("Win a Race on {0} course as {1}", dlcDesc[i][0], dlcDesc[i][1]),
         trigger =  stage == 71 && course == dlcNumb[i][0] && prev(courseclear) == 0 && courseclear == 1
-                && dword(playerPointer + 0x15BC) == 1 && ingame == 2 
+                && kart == 1 && ingame == 2 
     )
     achievement(
         title = format("{0}", dlcName[i][1]), points = 5,
         description = format("Achieve a new best time of under {0} on the {1} course", dlcDesc[i][2], dlcDesc[i][0]),
         trigger =  stage == 71 && course == dlcNumb[i][0] && prev(courseclear) == 0 && courseclear == 1
-                && dword(playerPointer + 0x15BC) == 1
+                && kart == 1
                 && rtime < dlcTime[i][0]
     )
     leaderboard(
                 title = format("{0} Karting", kartName[i][0]),
                 description = format("Win a Race on {0} kart race in the fastest possible time", kartDesc[i][1]),
                 start = stage == 71 && course == 24 + i && prev(courseclear) == 0 && courseclear == 1
-                && dword(playerPointer + 0x15BC) == 1,
+                && kart == 1,
                 cancel = always_false(),
                 submit = stage == 71 && course == 24 + i && prev(courseclear) == 0 && courseclear == 1
-                && dword(playerPointer + 0x15BC) == 1,
+                && kart == 1,
                 value = measured(rtime), format="FRAMES", lower_is_better=true
             )
     leaderboard(
                 title = format("{0} Course", dlcDesc[i][0]),
                 description = format("Win a Race on {0} course in the fastest possible time", dlcDesc[i][0]),
                 start = stage == 71 && course == dlcNumb[i][0] && prev(courseclear) == 0 && courseclear == 1
-                && dword(playerPointer + 0x15BC) == 1,
+                && kart == 1,
                 cancel = always_false(),
                 submit = stage == 71 && course == dlcNumb[i][0] && prev(courseclear) == 0 && courseclear == 1
-                && dword(playerPointer + 0x15BC) == 1,
+                && kart == 1,
                 value = measured(rtime), format="FRAMES", lower_is_better=true
             )
 }
@@ -672,16 +685,11 @@ function flyCheck () {
 
 function objectCheck (x) {
     Array = []
-    Array2 = []
-    for i in range (0, 15) {
-        for j in range (0, 15) {
-            array_push(Array2, tbyte(tbyte(playerPointer + 0x2c) + 0x14 + (4*(2*i)))
-            != prev(tbyte(tbyte(playerPointer + 0x2c) + 0x14 + (4*(2*j)))))
-        }
-        array_push(Array, all_of(Array2, y => y) && tbyte(tbyte(tbyte(playerPointer + 0x2c) + 0x14 + (4*(2*i))) + 0x10) == 0x502e64)
-        for i in range (0, length(Array2)) {
-        array_pop(Array2)
-        }
+    types = [0x277e0]
+    for i in range (0, 124) {
+        interaction = baseChain(0x24dec0+4*i,[0x20,0x2c,0x14],dword)
+        type = baseChain(0x24dec0+4*i,[0x20,0x2c,0x0c,0x01],tbyte_be)
+        array_push(Array,__ornext(any_of(types, y=>type == y)) && prev(interaction) == 0 && interaction != 0)
     }
     return tally_of(Array, 39 - x, y => y && never(startCha))
 }

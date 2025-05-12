@@ -46,12 +46,15 @@ cutsceneType = word_be(0x0074065e)
 flagPause = byte(0x00565b19)
 flagController = byte(0x00566be0)
 flagTime = byte(0x00592fcb)
+winCheck = dword_be(0x0066d02c)
+
 
 demoProtection = demo != 0
 startCha = ctime == 0 && prev(state) == 4
 failCha = demoProtection || state == 0x15 || ctime == 0 && prev(state) != 4 && state == 4
 startChaGamma = ctime == 0x030000 && prev(state) == 4
 failChaGamma = demoProtection || state == 0x15 || ctime == 0x030000 && prev(state) != 4 && state == 4
+tailsWin = prev(winCheck) == 0 && winCheck == 1
 progressCheck = state != 0x15
 clearCheck = prev(flagPause) == 0 && prev(flagController) == 0 && prev(flagTime) == 0 && prev(state) == 0x0f && prev(npc) == 0 //&& byte(0x000ac779) == 1
 memCheck = flagPause == 0 && flagController == 0 && flagTime == 0 && state == 0x0f && npc == 0
@@ -387,11 +390,13 @@ for i in range (0, 6) {
                             "with the most Rings in hand"]
                 valCalc = [score, timeMeasure, ring]
                 fmt = ["Value","Frames","Value"]
+                if (i == 1) win = tailsWin
+                else win = always_true()
                 if (i == 5 && l == 1) lib = false
                 else if (l != 1) lib = false
                 else lib = true
                 if (i == 5 && j == 1) lib = false
-                startANDsubmit = stage == stageID(charStage[i][j]) && char == i && clearCheck
+                startANDsubmit = stage == stageID(charStage[i][j]) && submode == 0 && char == i && clearCheck && win
                 if (substring(charStage[i][j],4,5) != "Chase" && substring(charStage[i][j],0,4) != "Sand")
                 leaderboard(
                     title = format("{0} - {1} - {2}", charStage[i][j],character[i],modeText[l]),
@@ -651,8 +656,8 @@ function bossCalc() {
 }
 
 achievement(
-    title = format("Parade of Lameo's"), points = 5,
-    description = format("Set a new 1st place record for each of the 7 characters Boss Rush's"),
+    title = format("Parade of Lame-Os"), points = 5,
+    description = format("Set a new 1st place record for each of the 7 characters Boss Rushes"),
     trigger =  progressCheck
             && __ornext(any_of(bossCalc(),y=>prev(y))) && all_of(bossCalc(),y=>!y)
 )
@@ -665,11 +670,13 @@ shield = pointerChain([0x48,0x20,0x07],bit1)
 anim = pointerChain([0x38,0x211],byte)
 controlA = bit0(0x000a6ce0)
 controlY = byte(0x000a6ce2)
-casinoRings = word_be(0x010ea5fe)
-ideya = byte(0x010dfda2)
+casinoPointer = dword_be(0x00591cfc)
+casinoRings = baseChain(casinoPointer,[0xa8be],word_be)
+ideya = baseChain(casinoPointer,[0x62],byte)
 planeHealth = float_be(0x01128ee0)
 eggHealth = float_be(0x008429d4)
 icons = dword_be(0x0079be64)
+zeroMarker = dword_be(0x00840468)
 
 types = {
     "Emerald Coast": [0x03f000,0x00f0e0,0x0670e0],
@@ -854,7 +861,7 @@ achievement(
 achievement(
     title = "Cold Crash Due to Cold Cash", points = 10,
     description = "As Sonic complete Icecap without collecting more than 20 Rings",
-    trigger =  (never(failCha || stage != stageID("Icecap") || demoProtection || char != 0 && char != 6
+    trigger =  (never(failCha || stage != stageID("Icecap") || submode == 1 || demoProtection || char != 0 && char != 6
             || ring > 20)
             && once(startCha)
             && trigger_when(clearCheck))
@@ -923,7 +930,7 @@ achievement(
     description = "As Tails complete Windy Valley without touching the ground more than 2 times",
     trigger =  (never(failCha || stage != stageID("Windy Valley") || demoProtection || char != 1)
             && once(startCha)
-            && trigger_when(clearCheck))
+            && trigger_when(clearCheck) && tailsWin)
             || funcCalc(interaction("groundT"),2)
 )
 
@@ -933,15 +940,15 @@ achievement(
     trigger =  (never(failCha || stage != stageID("Casinopolis") || demoProtection || char != 1
             || prev(icons) < icons)
             && once(startCha)
-            && trigger_when(clearCheck))
+            && trigger_when(clearCheck) && tailsWin)
 )
 
 achievement(
     title = "Avoiding Sharp Cuts With Sharp Turns", points = 10,
     description = "As Tails complete Icecap without breaking more than 8 Crystals",
-    trigger =  (never(failCha || stage != stageID("Icecap") || demoProtection || char != 1)
+    trigger =  (never(failCha || stage != stageID("Icecap") || submode == 1 || demoProtection || char != 1)
             && once(startCha)
-            && trigger_when(clearCheck))
+            && trigger_when(clearCheck) && tailsWin)
             || funcCalc(objectCheck(types["Icecap"], "ice"),8)
 )
 
@@ -950,7 +957,7 @@ achievement(
     description = "As Tails complete Sky Deck in less than 50 seconds and without touching the ground more than 5 times",
     trigger =  (never(failCha || stage != stageID("Sky Deck") || demoProtection || char != 1)
             && once(startCha) && ftime < 0x003200
-            && trigger_when(clearCheck))
+            && trigger_when(clearCheck) && tailsWin)
             || funcCalcP(interaction("groundT"),5,once(state == 0x0f && never(once(action == 0x2d))))
 )
 
@@ -959,7 +966,7 @@ achievement(
     description = "As Tails complete Speed Highway without flying more than 2 times",
     trigger =  (never(failCha || stage != stageID("Speed Highway") || demoProtection || char != 1)
             && once(startCha)
-            && trigger_when(clearCheck))
+            && trigger_when(clearCheck) && tailsWin)
             || funcCalc(interaction("flyT"),2)
 )
 
@@ -1019,9 +1026,9 @@ achievement(
 
 achievement(
     title = "He Lost His Glasses", points = 10,
-    description = "As Amy complete Hot Shelter without ever letting ZERO scan",
+    description = "As Amy complete Hot Shelter without ever being scanned by ZERO",
     trigger =  (never(failCha || stage != stageID("Hot Shelter") || demoProtection || char != 3
-            || any_of(multCalc(8,"zero"),y=>y))
+            || zeroMarker == 1)
             && once(startCha)
             && trigger_when(clearCheck))
 )
@@ -1036,7 +1043,7 @@ achievement(
 )
 
 achievement(
-    title = "I Like Lush Cave's", points = 10,
+    title = "I Like Lush Caves", points = 10,
     description = "As Big catch a fish in Emerald Coast's hidden area",
     trigger =  progressCheck
         && stage == stageID("Emerald Coast") && char == 4
@@ -1120,6 +1127,7 @@ achievement(
     description = format("As Sonic in Casinopolis earn at least 5000 Rings to build up a golden suprise"),
     trigger =  progressCheck && __ornext(char == 0 || char == 6)
         && stage == stageID("Casinopolis")
+        && casinoPointer != 0
         && prev(casinoRings) < 5000 && casinoRings >= 5000
 )
 
@@ -1128,6 +1136,7 @@ achievement(
     description = format("As Sonic in Casinopolis collect 5 Ideya's for a secret reward on the Night's Table"),
     trigger =  progressCheck && __ornext(char == 0 || char == 6)
         && stage == stageID("Casinopolis") && sub == 3
+        && casinoPointer != 0
         && prev(ideya) == 4 && ideya == 5
 )
 
@@ -1155,7 +1164,7 @@ bossNumb = []
 for i in range (0, length(character)-1) {
     for j in range (0,length(charBoss[i])-1) {
         for l in range (0,length(stageNumb)-1) {
-            if (l < length(stageNumb)-4) stagelookup[stageNumb[l][1]] = stageNumb[l][0]
+                if (l < length(stageNumb)-3) stagelookup[stageNumb[l][1]] = stageNumb[l][0]
             if (charBoss[i][j] == stageNumb[l][0]) {
                 bosslookup[stageNumb[l][1]] = stageNumb[l][0]
                 array_push(bossNumb,stage == stageNumb[l][1])
@@ -1212,11 +1221,12 @@ rich_presence_conditional_display(!progressCheck && stage == 0x00 && cutscene, "
 rich_presence_lookup("char", actualChar+(char/0x06)*0x20, charlookup), rich_presence_value("Value", sum_of(emblemCalc(), y=>y), "VALUE"))
 rich_presence_conditional_display(!progressCheck, "Currently in the Main Menu")
 
-rich_presence_conditional_display(progressCheck && stage == 0x00, "{0}{1} is currently trying to beat a score in {2} | Score: {3} | Emblems: {4}",
+rich_presence_conditional_display(progressCheck && stage == 0x00 && mode == 1, "{0}{1} is currently trying to beat a score in {2} | Score: {3} | Emblems: {4}",
 rich_presence_lookup("demo", demo, demolookup, ""), rich_presence_lookup("char", actualChar+(mode*char/6)*0x10, charlookup),
 rich_presence_lookup("stage", stage, stagelookup), rich_presence_value("Value", measured(baseChain(dword_be(0x006b3650),[-0xA0,0x08],dword_be)), "Value"),
 rich_presence_value("Value", sum_of(emblemCalc(), y=>y), "VALUE"),
 rich_presence_lookup("special", stage, special))
+rich_presence_conditional_display(progressCheck && stage == 0x00, "Getting ready for a Sonic Adventure")
 
 rich_presence_conditional_display(progressCheck && stage == 0x23, "{0}{1} is currently driving around {2} | Time: {3} | Emblems: {4}",
 rich_presence_lookup("demo", demo, demolookup, ""), rich_presence_lookup("char", actualChar+(mode*char/6)*0x10, charlookup),
@@ -1224,6 +1234,37 @@ rich_presence_lookup("stage", stage, stagelookup), rich_presence_value("Frames",
 rich_presence_value("Value", sum_of(emblemCalc(), y=>y), "VALUE"),
 rich_presence_lookup("special", stage, special))
 
+//Mission
+rich_presence_conditional_display(progressCheck && stage >= 0x24 && stage <= 0x26 && mode == 2, "{0}{1} is currently {5} around {2} | Score: {3} | Missions: {4}",
+rich_presence_lookup("demo", demo, demolookup, ""), rich_presence_lookup("char", actualChar, charlookup),
+rich_presence_lookup("stage", stage, stagelookup), rich_presence_value("Value", score, "VALUE"), rich_presence_value("Value", sum_of(collectables(format("AllMission")), y=>y)),
+rich_presence_lookup("special", stage, special))
+
+rich_presence_conditional_display(progressCheck && stage >= 0x27 && stage <= 0x29 && mode == 2, "{0}{1} is currently playing with Chao's in the {2} Garden | Missions: {4}",
+rich_presence_lookup("demo", demo, demolookup, ""), rich_presence_lookup("char", actualChar, charlookup),
+rich_presence_lookup("stage", stage, stagelookup), rich_presence_value("Value", lives, "VALUE"), rich_presence_value("Value", sum_of(collectables(format("AllMission")), y=>y)),
+rich_presence_lookup("special", stage, special))
+
+rich_presence_conditional_display(progressCheck && stage >= 0x1a && stage <= 0x29 && mode == 2, "{0}{1} is currently wandering around {2} | Missions: {4}",
+rich_presence_lookup("demo", demo, demolookup, ""), rich_presence_lookup("char", actualChar, charlookup),
+rich_presence_lookup("stage", stage, stagelookup), rich_presence_value("Value", lives, "VALUE"), rich_presence_value("Value", sum_of(collectables(format("AllMission")), y=>y)))
+
+rich_presence_conditional_display(progressCheck && mode == 2 && (stage >= 0x0f && stage <= 0x19) || (char == 0x05 && movementState == 1), "{0}{1} is currently fighting against {2} | Lives: {3} | Rings: {4} | Score: {5} | Time: {6} | Missions: {7} | {8} Mode",
+rich_presence_lookup("demo", demo, demolookup, ""), rich_presence_lookup("char", actualChar, charlookup),
+rich_presence_lookup("boss", stage, bosslookup), rich_presence_value("Value", lives, "VALUE"),
+rich_presence_value("Value", ring, "VALUE"), rich_presence_value("Value", enemyScore, "VALUE"),
+rich_presence_value("Frames", timeMeasure, "FRAMES"), rich_presence_value("Value", sum_of(collectables(format("AllMission")), y=>y)),
+rich_presence_lookup("mode", mode, modelookup))
+
+rich_presence_conditional_display(progressCheck && mode == 2, "{0}{1} is currently {2} {3} | Lives: {4} | Rings: {5} | Score: {6} | Time: {7} | Missions: {8} | {9} Mode",
+rich_presence_lookup("demo", demo, demolookup, ""),
+rich_presence_lookup("char", actualChar, charlookup), rich_presence_lookup("type", actualChar, chartype),
+rich_presence_lookup("stage", stage, stagelookup), rich_presence_value("Value", lives, "VALUE"),
+rich_presence_value("Value", ring, "VALUE"), rich_presence_value("Value", enemyScore, "VALUE"),
+rich_presence_value("Frames", timeMeasure, "FRAMES"), rich_presence_value("Value", sum_of(collectables(format("AllMission")), y=>y)),
+rich_presence_lookup("mode", mode, modelookup))
+
+//Story & Trial
 rich_presence_conditional_display(progressCheck && stage >= 0x24 && stage <= 0x26, "{0}{1} is currently {5} around {2} | Score: {3} | Emblems: {4}",
 rich_presence_lookup("demo", demo, demolookup, ""), rich_presence_lookup("char", actualChar+(mode*char/6)*0x10, charlookup),
 rich_presence_lookup("stage", stage, stagelookup), rich_presence_value("Value", score, "VALUE"), rich_presence_value("Value", sum_of(emblemCalc(), y=>y), "VALUE"),
@@ -1260,28 +1301,4 @@ rich_presence_value("Value", ring, "VALUE"), rich_presence_value("Value", enemyS
 rich_presence_value("Frames", timeMeasure, "FRAMES"), rich_presence_value("Value", sum_of(emblemCalc(), y=>y), "VALUE"),
 rich_presence_lookup("mode", mode, modelookup))
 
-rich_presence_conditional_display(progressCheck && mode == 2 && (stage >= 0x0f && stage <= 0x19) || (char == 0x05 && movementState == 1), "{0}{1} is currently fighting against {2} | Lives: {3} | Rings: {4} | Score: {5} | Time: {6} | Missions: {7} | {8} Mode",
-rich_presence_lookup("demo", demo, demolookup, ""), rich_presence_lookup("char", actualChar, charlookup),
-rich_presence_lookup("boss", stage, bosslookup), rich_presence_value("Value", lives, "VALUE"),
-rich_presence_value("Value", ring, "VALUE"), rich_presence_value("Value", enemyScore, "VALUE"),
-rich_presence_value("Frames", timeMeasure, "FRAMES"), rich_presence_value("Value", sum_of(collectables(format("AllMission")), y=>y)),
-rich_presence_lookup("mode", mode, modelookup))
-
-rich_presence_conditional_display(progressCheck && mode == 2, "{0}{1} is currently {2} {3} | Lives: {4} | Rings: {5} | Score: {6} | Time: {7} | Missions: {8} | {9} Mode",
-rich_presence_lookup("demo", demo, demolookup, ""),
-rich_presence_lookup("char", actualChar, charlookup), rich_presence_lookup("type", actualChar, chartype),
-rich_presence_lookup("stage", stage, stagelookup), rich_presence_value("Value", lives, "VALUE"),
-rich_presence_value("Value", ring, "VALUE"), rich_presence_value("Value", enemyScore, "VALUE"),
-rich_presence_value("Frames", timeMeasure, "FRAMES"), rich_presence_value("Value", sum_of(collectables(format("AllMission")), y=>y)),
-rich_presence_lookup("mode", mode, modelookup))
-
 rich_presence_display(" \n//RP by DarkyAndreas")
-
-
-
-
-
-
-
-
-

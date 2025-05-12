@@ -1,21 +1,27 @@
 // Mario & Sonic at the Olympic Winter Games
 // #ID = 14813
 
+code = dword(0x3ffe0c) == 0x504c4f43
+
 menu = byte(0x3d9888)
 submenu = byte(0x3d9889)
+map = byte(0x0e3599)
+event = dword(0x3d9698)
 screen = dword(0x3d9a20)
 pointer = tbyte(0x3bde08)
+savefile = byte(0x3bde28)
+saveCheck = screen != 0x1f && savefile <= 1
 
 function L(x) => low4(pointer + x)
 function H(x) => high4(pointer + x)
 
 function titles(type, extra) {
-    charMission = ["It’s-a Mario Time!","Playing Second-Fiddle No More","Feeling Just Peachy","Hi I'm Daisy!",
+    charMission = ["It's-a Mario Time!","Playing Second-Fiddle No More","Feeling Just Peachy","Hi I'm Daisy!",
                    "No Longer Just a Pet","The King of Koopas","Brent Screams in the Distance",
-                   "Maybe Now He’ll Get into Smash","Feed Me More Bananas","The Prince of Koopas",
-                   "The Fastest Hedgehog Around","I Want to Fly High","Unlike Sonic, He Don’t Chuckle",
+                   "Maybe Now He'll Get into Smash","Feed Me More Bananas","The Prince of Koopas",
+                   "The Fastest Hedgehog Around","I Want to Fly High","Unlike Sonic, He Don't Chuckle",
                    "The Tarot Cards Read True","I Am, I Am All of Me","A Genius Mastermind of 300 IQ",
-                   "What Do You Mean This Gig Doesn’t Pay?!","Fear the Power of the Flames","It’s No Use",
+                   "What Do You Mean This Gig Doesn't Pay?!","Fear the Power of the Flames","It's No Use",
                    "The Perfect Copy, Minus a Few Bolts",]
     if (type == "charMission") return charMission[extra]
 }
@@ -182,37 +188,93 @@ items = {
     [0x0e379c,[bit1,bit4,bit7]],
     [0x0e379d,[bit2,bit3,bit7]],
     [0x0e379e,[bit1,bit4]],
-    [0x0e379f,[bit2,bit7]],//bit2(0x0e379f),bit7(0x0e379f),
-    [0x0e37a0,[bit3]],//bit3(0x0e37a0),
-    [0x0e37a1,[bit1,bit4,bit5,bit7]],//bit1(0x0e37a1),bit4(0x0e37a1),bit5(0x0e37a1),bit7(0x0e37a1),
-    [0x0e37a2,[bit1,bit4]],//bit1(0x0e37a2),bit4(0x0e37a2),
-    [0x0e37a3,[bit1]],//bit1(0x0e37a3),
-    [0x0e37a4,[bit1,bit2]],//bit1(0x0e37a4),bit2(0x0e37a4),
-    [0x0e37a5,[bit6]],//bit6(0x0e37a5),
-    [0x0e37a6,[bit3]],//bit3(0x0e37a6),
-    [0x0e37a7,[bit0,bit1,bit2,bit3,bit4,bit5,bit6,bit7]],//bitcount(0x0e37a7),
-    [0x0e37a8,[bit0,bit1,bit2,bit3,bit4,bit5,bit6]],//bitcount(0x0e37a8)- bit7(0x0e37a8),
+    [0x0e379f,[bit2,bit7]],
+    [0x0e37a0,[bit3]],
+    [0x0e37a1,[bit1,bit4,bit5,bit7]],
+    [0x0e37a2,[bit1,bit4]],
+    [0x0e37a3,[bit1]],
+    [0x0e37a4,[bit1,bit2]],
+    [0x0e37a5,[bit6]],
+    [0x0e37a6,[bit3]],
+    [0x0e37a7,[bit0,bit1,bit2,bit3,bit4,bit5,bit6,bit7]],
+    [0x0e37a8,[bit0,bit1,bit2,bit3,bit4,bit5,bit6]],
     [0x0e3834,[bit1]],
     ],
     1: [ //sparkleton
-    [0x0e379c,[bit1,bit4,bit7]],[0x0e379d,[bit2,bit3,bit7]],
+    [0x0e37bc,[bit4,bit5,bit7]],
+    [0x0e37bd,[bit0,bit1,bit2,bit4,bit5,bit6]],
+    [0x0e37be,[bit1,bit3,bit5,bit7]],
+    [0x0e37bf,[bit2,bit6]],
+    [0x0e37c0,[bit0,bit1,bit4,bit7]],
+    [0x0e37c1,[bit1,bit2,bit3,bit4,bit5,bit6,bit7]],
+    [0x0e37c2,[bit0,bit1,bit2,bit3,bit4,bit5,bit6,bit7]],
+    [0x0e37c3,[bit0,bit1,bit2,bit3]],
+    [0x0e3834,[bit5]],
     ],
     2: [ //polastraits
-    [0x0e379c,[bit1,bit4,bit7]],[0x0e379d,[bit2,bit3,bit7]],
+    [0x0e37a9,[bit1,bit4,bit5,bit7]],
+    [0x0e37aa,[bit1,bit2,bit4,bit5,bit7]],
+    [0x0e37ab,[bit3,bit5,bit6,bit7]],
+    [0x0e37ac,[bit6,bit7]],
+    [0x0e37ad,[bit0,bit1,bit7]],
+    [0x0e37ae,[bit0,bit1,bit2,bit3,bit4,bit5,bit6,bit7]],
+    [0x0e37af,[bit0,bit1,bit2,bit3,bit4,bit5,bit6,bit7]],
+    [0x0e37b0,[bit0,bit1,bit2,bit3,bit4,bit5,bit6,bit7]],
+    [0x0e37b1,[bit0,bit1,bit2,bit3,bit4]],
+    [0x0e3834,[bit7]],
     ],
     3: [ //cubyrinth
-    [0x0e379c,[bit1,bit4,bit7]],[0x0e379d,[bit2,bit3,bit7]],
+    [0x0e37c3,[bit4,bit5,bit6]],
+    [0x0e37c4,[bit0,bit1,bit6,bit7]],
+    [0x0e37c5,[bit0,bit1,bit2,bit3,bit4,bit5,bit6]],
+    [0x0e37c6,[bit0,bit3,bit4]],
+    [0x0e37c7,[bit0,bit1,bit2]],
+    [0x0e37c8,[bit2,bit5,bit7]],
+    [0x0e37c9,[bit2,bit3,bit7]],
+    [0x0e37ca,[bit0]],
+    [0x0e37cb,[bit0,bit1,bit2,bit4,bit5,bit6,bit7]],
+    [0x0e37cc,[bit0,bit1,bit2,bit3]],
+    [0x0e3835,[bit1]],
+    [0x0e3835,[bit2]],
     ],
     4: [ //icepeak
-    [0x0e379c,[bit1,bit4,bit7]],[0x0e379d,[bit2,bit3,bit7]],
+    [0x0e37b1,[bit5]],
+    [0x0e37b2,[bit1,bit2,bit3,bit4,bit6]],
+    [0x0e37b3,[bit2,bit7]],
+    [0x0e37b4,[bit0,bit1,bit3,bit6,bit7]],
+    [0x0e37b5,[bit1,bit5,bit6,bit7]],
+    [0x0e37b6,[bit0,bit1,bit3,bit4,bit6]],
+    [0x0e37b7,[bit0,bit4,bit7]],
+    [0x0e37b8,[bit2,bit4,bit5,bit6]],
+    [0x0e37b9,[bit0,bit1,bit3,bit5]],
+    [0x0e37ba,[bit0,bit1,bit3,bit4,bit5,bit6,bit7]],
+    [0x0e37bb,[bit0,bit1,bit2,bit3,bit4,bit5,bit6,bit7]],
+    [0x0e37bc,[bit0,bit1,bit2]],
+    [0x0e3835,[bit7]],
     ],
     5: [ //blizland
-    [0x0e379c,[bit1,bit4,bit7]],[0x0e379d,[bit2,bit3,bit7]],
+    [0x0e37cc,[bit4,bit5]],
+    [0x0e37cd,[bit0,bit2,bit4,bit5,bit6]],
+    [0x0e37ce,[bit2,bit4,bit7]],
+    [0x0e37cf,[bit2,bit4,bit6]],
+    [0x0e37d0,[bit0,bit1,bit2,bit3,bit6]],
+    [0x0e37d1,[bit0,bit2,bit3,bit6]],
+    [0x0e37d2,[bit1,bit2,bit5]],
+    [0x0e37d3,[bit1,bit3,bit4,bit5]],
+    [0x0e37d4,[bit0,bit2,bit4,bit6,bit7]],
+    [0x0e37d5,[bit0,bit1,bit2]],
+    [0x0e37d6,[bit6]],
+    [0x0e37d7,[bit0,bit4,bit6]],
+    [0x0e37d8,[bit0,bit2]],
+    [0x0e37d9,[bit3,bit4,bit5,bit6,bit7]],
+    [0x0e37da,[bit0,bit1,bit2,bit3]],
+    [0x0e3835,[bit5,bit6]],
+    [0x0e3836,[bit1]],
     ],
 }
 
 events = {
-    "Olympic":  [[0x3AC,"Alphine Skiing GS"],[0x3AE,"Ski Jumping LH"],[0x3B0,"Moguls"],
+    "Olympic":  [[0x3AC,"Alpine Skiing GS"],[0x3AE,"Ski Jumping LH"],[0x3B0,"Moguls"],
                  [0x3B2,"Cross-Country"],[0x3B3,"Biathlon"],[0x3B5,"Nordic Combined"],
                  [0x3B7,"Snowboard Cross"],[0x3B9,"Speed Skating 500m"],[0x3BA,"Short Track 500m"],
                  [0x3BC,"Figure Skating"],[0x3BE,"Bobsleigh"],[0x3C0,"Skeleton"],
@@ -226,26 +288,71 @@ events = {
 years = [[2006,2002],[1998,1994,1992],[1988,1984,1980],[1976,1972],
          [1968,1964,1960],[1956,1952],[1948],[1936,1932],[1928,1924]]
 
+emblems = [
+    ["Gate Master","Finish Alpine Skiing GS in 00:50.000 or less"],
+    ["Long Jumper","Jump Beyond 133.000m in Ski Jumping LH"],
+    ["Yellow Bib","Get more than 25.000pts in Moguls"],
+    ["Backcountry","Finish Cross-Country in 14:00.000 or less"],
+    ["Snow Shooter","Finish Biathlon in 15:00.000 or less"],
+    ["King of Skiers","Finish Nordic Combined in 14:30.000 or less"],
+    ["Drift Boarder","Finish Snowboard Cross in 00:55.000 or less"],
+    ["Sprinter","Finish Speed Skating 500m in 00:33.000 or Less"],
+    ["Track Skater","Finish Short Track 500m in 00:40.000 or Less"],
+    ["Ice Rink Dancer","Finish any Figure Skating routine with 100.000pts or more"],
+    ["Express","Finish Bobsleigh in 00:57.000 or less"],
+    ["Nonstop","Finish Skeleton in 00:57.000 or less"],
+    ["High Speed","Finish Luge in 00:50.000 or less"],
+    ["Ice Warrior","Win in Ice Hockey by a 10-point margin"],
+    ["Broom Master","Get 3 or more points in 1 end at Curling"],
+    ["Speedster","Finish Supersonic Downhill in 00:21.000 or less"],
+    ["Arial Ace","Jump further than 2000m in Rocket Ski Jumping"],
+    ["Terrain Racer","Finish Ski Cross Racing in 01:30.000 or less"],
+    ["Sharpshooter","Get more than 15000pts in Ski Shooting"],
+    ["Trick Artist","Get more than 17000pts in Deluxe Halfpipe"],
+    ["Drift Monster","Finish Extreme Snowboarding in 03:00.000 or less"],
+    ["Speed Demon","Finish Intense Short Track in 02:00.000 or less"],
+    ["Dream Dancer","Get more than 3000pts in Ultimate Figure Skating"],
+    ["Kamikaze","Finish Blazing Bobsleigh in 01:15.000 or less"],
+    ["Goal Hunter","Score 100+ points in Fever Hockey"],
+    ["Point Hound","Get at least 5 badges in Snow Machine Fight"],
+    ["Miracle Bowler","Get 3 (Super) Strikes in a row in Curling Bowling"],
+    ["Round Champion","Win a Multi-Round Match"],
+    ["Party","Win each of the Party Games once"],
+    ["Ghost Fighter","Defeat all Level 2 Staff Ghosts"],
+    ["Ghost Master","Defeat all Level 3 Staff Ghosts"],
+    ["Addicted","Start the Game 50 Times"],
+    ["Daytime","Start Game between 6:00 AM and 6:30 AM"],
+    ["Nighttime","Start Game between 6:00 PM and 6:30 PM"],
+    ["Full Play","Play all Events once"],
+    ["Collaborative","Play as every character once"],
+    ["Gold Medals","All Gold Medals Hard Difficulty"],
+    ["Emblem Party","Got All Emblems"],
+    ["Multi Pary","Played Single/Multi-Card play mode "],
+    ["Trader","Save/Trade a Ghost (SINGLE/MULTIPLAYER)"],
+    ["Wiimmfi","Connect to Nintendo WFC"]]
+
 function missionCalc(i, x) {
     Array = []
     for j in range (0, length(missions[i]) -1) {
         array_push(Array, missions[i][j]/x)
     }
-    return sum_of(Array, y => prev(y)) == length(Array) - 1 && measured(sum_of(Array, y => y) == length(Array))
+    return sum_of(Array, y => prev(y)) == length(Array)-1 && measured(sum_of(Array, y => y) == length(Array))
 }
 
 function itemCalc(i) {
-    Array = []
-    Array2 = []
+    Array = [[],[]]
+    Array2 = [[],[]]
     for j in range (0, length(items[i]) -1) {
         off = items[i][j][0]
         size = items[i][j][1]
-        Array2 = array_map(size, y=>y(off))
-        for l in range (0, length(Array2) - 1) {
-            array_push(Array, Array2[l])
+        Array2[0] = array_map(size, y=>y(off))
+        Array2[1] = array_map(size, y=>y(pointer+off-0xE2FBC))
+        for l in range (0, length(Array2[0]) - 1) {
+            array_push(Array[0], Array2[0][l])
+            array_push(Array[1], Array2[1][l])
         }
     }
-    return sum_of(Array, y => prev(y)) == length(Array) - 1 && measured(sum_of(Array, y => y) == length(Array))
+    return sum_of(Array[1], y => prev(y)) < length(Array[1]) && measured(sum_of(Array[0], y => y) == length(Array[0]))
 }
 
 function charCalc(char) {
@@ -296,7 +403,7 @@ function memorabiliaCalc(decade,code) {
             }
         }
     }
-    if (code == "ach") return sum_of(comb, y => prev(y)) <= length(comb)-1 && measured(sum_of(comb, y => y) == length(comb))
+    if (code == "ach") return sum_of(comb, y => prev(y)) < length(comb) && measured(sum_of(comb, y => y) == length(comb))
     else if (code == "pon") {
         if (length(comb) < 3) pon = 2
         else if (length(comb) >= 3 && length(comb) < 5) pon = 4
@@ -322,34 +429,34 @@ function triviaCalc() {
     for i in range(0,19) {
         array_push(Array, bit(i,pointer+0x8C0))
     }
-    return sum_of(Array, y => prev(y)) < length(Array) && measured(sum_of(Array, y => y) == length(Array))
+    return sum_of(Array, y => prev(y)) == length(Array)-1 && measured(sum_of(Array, y => y) == length(Array))
 }
 
 for i in range (0, length(missions) -1) {
-    start = once(screen == 0x51)
+    start = measured(always_true(), when=once(screen == 0x51))
     nstart = never(screen == 0x1d || screen == 0x27)
     achievement(
         title = format("{0}'s Mission",place[i]), points = 10,
         description = format("Complete all Missions in {0} on any Rank",place[i]),
-        trigger = nstart && measured(always_true(), when=start) && missionCalc(i,3)
+        trigger = nstart && start && missionCalc(i,3)
     )
     achievement(
         title = format("Pure Gold in {0}",place[i]), points = 10,
         description = format("Complete all Missions in {0} on Gold Rank",place[i]),
-        trigger = nstart && measured(always_true(), when=start) && missionCalc(i,4)
+        trigger = nstart && start && missionCalc(i,4)
     )
-    /*achievement(
+    achievement(
     title = format("{0}'s Items",place[i]), points = 10,
     description = format("Find all obtainable Items in {0}",place[i]),
-    trigger = measured(always_true(), when=menu == 16 && submenu == 1) && itemCalc(i)
-    )*/
+    trigger = nstart && start && map == i && screen == 0x24 && event == ~0 && itemCalc(i)
+    )
 }
 
 for i in range(0,length(character)-1) {
     achievement(
         title = format("{0}",titles("charMission",i)), points = 3,
         description = format("Complete 10 Missions as {0}",character[i]),
-        trigger =  screen != 0x1f && charCalc(i)
+        trigger =  code && saveCheck && charCalc(i)
     )
 }
 
@@ -366,8 +473,8 @@ for i in range(0,1) {
             achievement(
                 title = format("{0} {1}",events[evnt][j][1],ttl[l]), points = 2+l+l/2,
                 description = format("Win a {3} Medal in {0} on {1} difficulty{2}",events[evnt][j][1],des[l],hg,medl),
-                trigger =  screen != 0x1f && medalCalc(l,events[evnt][j][0])
-            ) 
+                trigger =  code && saveCheck && medalCalc(l,events[evnt][j][0])
+            )
         }
     }
 }
@@ -376,12 +483,24 @@ for i in range(0,length(years)-1) {
     achievement(
         title = format("{0}'s Memorabilia Collector",2000-i*10), points = memorabiliaCalc(i,"pon"),
         description = format("Collect all Memorabilia from the {0} Winter Olympics",yearDes(i)),
-        trigger =  screen != 0x1f && memorabiliaCalc(i,"ach")
+        trigger =  code && saveCheck && memorabiliaCalc(i,"ach")
     )
 }
 
 achievement(
     title = format("Trivia Master"), points = 25,
     description = format("Collect all Olympic Trivia"),
-    trigger =  screen != 0x1f && triviaCalc()
+    trigger =  code && saveCheck && triviaCalc()
 )
+
+for i in range(1,41) {
+    offsetCalc = i/8
+    emblem = bit(i%8,pointer+0x3C8+offsetCalc)
+    if (emblems[i-1][0] == "Ghost Master") pts = 10
+    else pts = 5
+    achievement(
+        title = format("{0}",emblems[i-1][0]), points = pts,
+        description = format("{0}",emblems[i-1][1]),
+        trigger =  code && saveCheck && prev(emblem) == 0 && emblem == 1
+    )
+}

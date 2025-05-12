@@ -196,8 +196,8 @@ StoryStatue = {
 }
 
 StoryCurly = {
-    "US": bit3(0x0d7e43),
-    "JP": bit3(0x0d9653),
+    "US": bit4(0x0d7e43),
+    "JP": bit4(0x0d9653),
 }
 
 SaveCheck = {
@@ -631,8 +631,8 @@ function TimeAttackWeapon(region, i) {
 }
 
 function HellCurly(region) {
-    return dword(0xffe00c) == Code[region] && HUD[region] != 0 && Room[region] == 0x50 && prev(StoryCurly[region]) == 0x01
-    && StoryCurly[region] == 0x00
+    return dword(0xffe00c) == Code[region] && HUD[region] != 0 && Room[region] == 0x50 && prev(StoryCurly[region]) == 0x00
+    && StoryCurly[region] == 0x01
 }
 
 function HellPress(region) {
@@ -1032,7 +1032,7 @@ achievement(
 
 achievement(
     title = "Nowhere to Go", points = 2,
-    description = "Congrats on reaching the end in 'Balcony'",
+    description = "Read a secret sign in 'Balcony'",
     trigger = cheevo0("US", 0x3e, "End of the road!") || cheevo0("JP", 0x3e, "IKIDOMARI!!")
 )
 
