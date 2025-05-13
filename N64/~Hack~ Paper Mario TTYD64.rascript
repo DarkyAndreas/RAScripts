@@ -291,6 +291,7 @@ smG = dword(0x521128)
 jpG = dword(0x518be0)
 round = turn(1)+turn(2)
 roundEnd = prev(round) == 2 && round == 0
+menuCheck = menuVal == 1 && music != 0xa5
 
 test = [[mLog,always_true()],"Test"]
 bsGK = [[lLog,any_of([4,8], y=>tbyte(0x0dc150+y) != 0 && enemyPTR(0x01BB,y) < 0x02)],
@@ -351,12 +352,12 @@ for i in range (0,1) {
                 achievement(
                     title = titles["partners"][l][0][i], points = 2+3*i, type = prog,
                     description = format("Unlock {0} {1}", partners[offset/8],diffDesc(4-i)),
-                    trigger = menuVal == 1 && diffCheck && newGame == 0 && prev(unlock) == 0 && unlock == 1
+                    trigger = menuCheck && diffCheck && newGame == 0 && prev(unlock) == 0 && unlock == 1
                 )
                 achievement(
                     title = titles["partners"][l][1][i], points = 2+3*i,
                     description = format("Fully upgrade {0} {1}", partners[offset/8],diffDesc(4-i)),
-                    trigger = menuVal == 1 && diffCheck && newGame == 0 && prev(level) == 1 && level == 2
+                    trigger = menuCheck && diffCheck && newGame == 0 && prev(level) == 1 && level == 2
                 )
                 partnerlookup[offset/8+1] = partners[offset/8]
             }
@@ -367,7 +368,7 @@ for i in range (0,1) {
                     achievement(
                         title = titles["items"][n][l][i], points = 2+3*i, type = prog,
                         description = format("Obtain the {0} {1} {2}", items[l],itemType[n],diffDesc(4-i)),
-                        trigger = menuVal == 1 && diffCheck && newGame == 0 && prev(item) == 0+l && item == 1+l
+                        trigger = menuCheck && diffCheck && newGame == 0 && prev(item) == 0+l && item == 1+l
                     )
                 }
             }
@@ -375,7 +376,7 @@ for i in range (0,1) {
             achievement(
                 title = format("Diploma {0}", diploma[i]), points = 5+5*i,
                 description = format("Earn the Diploma {0}",diffDesc(4-i)),
-                trigger =  menuVal == 1 && diffCheck && newGame == 0
+                trigger =  menuCheck && diffCheck && newGame == 0
                         && all_of(itemCheck(0x0e),y=>prev(!y)) && __ornext(any_of(itemCheck(0x0e),y=>y))
             )
             for l in range(0,1) {
@@ -385,11 +386,13 @@ for i in range (0,1) {
                     if (i == 0 && l == 0) prog = "progression"
                     else if (l == 1 && ii == 6) prog = "missable"
                     else prog = ""
+                    if (l == 0 && ii == 5) log = dialog == 0xe00c6 && load == 1
+                    else log = prev(win) == 0 && win == 1
                     achievement(
                         title = titles["bosses"][17*l+ii][i], points = 2+i*3, type = prog,
                         description = format("Defeat {0} {1} {2}",bossDesc(bossINF[0]),areaDesc(bossINF[1],bossINF[0]),diffDesc(4-i)),
                         trigger =  never(state == 0) && once(battlePointers(0,bossINF[0]))
-                                && diffCheck && newGame == 0 && prev(win) == 0 && win == 1
+                                && diffCheck && newGame == 0 && log
                     )
                 }
             }
@@ -414,13 +417,13 @@ for i in range (0,1) {
                 achievement(
                     title = titles["chapters"][l][j][i], points = 5+5*i,
                     description = format("Complete {0} {1}", ch,des),
-                    trigger = menuVal == 1 && mode && diffCheck && newGame == 0+j/3 && log
+                    trigger = menuCheck && mode && diffCheck && newGame == 0+j/3 && log
                 )
             }
             achievement(
                 title = titles["chapters"][8][j][i], points = 10+15*i,
                 description = format("Complete the game {0}",des),
-                trigger = menuVal == 1 && mode && diffCheck && newGame == 0+j/3 && prev(music) == ~0 && music == 0x6e
+                trigger = menuCheck && mode && diffCheck && newGame == 0+j/3 && prev(music) == ~0 && music == 0x6e
             )
         }
     }
@@ -446,12 +449,14 @@ for i in range(0, length(bosses[0])-1) {
                 else if (logic[0] == 2) rLogic = rLogic && logic[j]
             }
         }
+        if (i == 5) log = dialog == 0xe00c6 && load == 1
+        else log = prev(win) == 0 && win == 1
         achievement(
             title = titles["bosses"][i][2], points = 10,
             description = format("Defeat {0} {1} on extreme New Game+ difficulty",bossDesc(bossINF[0]),current[length(current)-1]),
             trigger =  never(state == 0 || lLogic) && once(load == 1) && once(battlePointers(0,curBoss[i][0]))
                     && diffVal == 3 && newGame == 1 && mLogic
-                    && trigger_when(prev(win) == 0 && win == 1)
+                    && trigger_when(log)
                     || rLogic
         )
         boss = bossID[0]
@@ -505,6 +510,7 @@ areaPrologue = {
 areaChapter1 = {
     "tattle": [
         bit3(0x0DBEDD), //Koopa Troopa
+        bit4(0x0DBEDD), //Paratroopa
         bit1(0x0DBEED), //Jr. Troopa 2
         bit1(0x0DBEF7), //Kent C. Koopa
         bit2(0x0DBEDD), //Fuzzy
@@ -512,10 +518,11 @@ areaChapter1 = {
         bit7(0x0DBEDD), //Bullet Bill
         bit0(0x0DBEDC), //Bill Blaster
         bit1(0x0DBEF3), //Bowser???
+        bit2(0x0DBEF3), //Koopa Bros.
+        bit3(0x0DBEF3), //Green Ninjakoopa
         bit4(0x0DBEF3), //Red Ninjakoopa
         bit5(0x0DBEF3), //Black Ninjakoopa
         bit6(0x0DBEF3), //Yellow Ninjakoopa
-        bit3(0x0DBEF3), //Green Ninjakoopa
     ],
     "starpieces": [
         [0x243,0x244,0x251,0x25E,0x260,0x261,0x27E],
@@ -721,6 +728,7 @@ areaChapter8 = {
 
 areaTTown = {
     "tattle": [
+        bit5(0x0DBEEA), //Gus
         bit6(0x0DBEEC), //Magikoopa
         bit3(0x0DBEED), //Jr. Troopa 4
         bit5(0x0DBEEF), //Chan
@@ -842,7 +850,7 @@ for i in range(0, length(area[0])-1) {
                 achievement(
                     title = ttl, points = pt, type = tp,
                     description = format("{0}{1} found around {2}",des,nds,ar),
-                    trigger =  measuredIf(menuVal == 1) && sum_of(Array[0], y=>prev(y)) == sum_of(Array[1],y=>y)-1
+                    trigger =  measuredIf(menuCheck) && sum_of(Array[0], y=>prev(y)) == sum_of(Array[1],y=>y)-1
                             && measured(sum_of(Array[0], y=>y) == sum_of(Array[1],y=>y))
                 )
             }
@@ -872,20 +880,20 @@ for i in range(0, length(area[0])-1) {
 /*achievement(
     title = "NPC Star", points = 5,
     description = "Obtain all starpieces from NPCs",
-    trigger =  measuredIf(menuVal == 1) && measured(18+sum_of(npcs,y=>y) == 21)
+    trigger =  measuredIf(menuCheck) && measured(18+sum_of(npcs,y=>y) == 21)
 )*/
 
 achievement(
     title = "Goombapedia", points = 25, type = "missable",
     description = "Tattle all enemies",
-    trigger =  measuredIf(menuVal == 1) && sum_of(tattles, y=>prev(y)) == sum_of(tattlesNumb, y=>y)-1
+    trigger =  measuredIf(menuCheck) && sum_of(tattles, y=>prev(y)) == sum_of(tattlesNumb, y=>y)-1
             && measured(sum_of(tattles, y=>y) == sum_of(tattlesNumb, y=>y))
 )
 
 achievement(
     title = "Twinkle, Twinkle, Little Star", points = 10,
     description = "Obtain all starpieces",
-    trigger =  measuredIf(menuVal == 1)
+    trigger =  measuredIf(menuCheck)
             && prev(starPieces) < 104+21+11
             && measured(starPieces == 104+21+11) // normal Starpieces + NPC Starpieces + Letter Starpieces
 )
@@ -893,21 +901,21 @@ achievement(
 achievement(
     title = "A Secret For Most Players", points = 10,
     description = "Activate every hidden block",
-    trigger =  measuredIf(menuVal == 1) && sum_of(blocks, y=>prev(y)) == sum_of(blocksNumb, y=>y)-1
+    trigger =  measuredIf(menuCheck) && sum_of(blocks, y=>prev(y)) == sum_of(blocksNumb, y=>y)-1
             && measured(sum_of(blocks, y=>y) == sum_of(blocksNumb, y=>y))
 )
 
 achievement(
     title = "Cooking For Pros", points = 10,
     description = "Cook all 89 possible Recipes",
-    trigger =  measuredIf(menuVal == 1) && sum_of(recipes, y=>prev(y)) == 89-1
+    trigger =  measuredIf(menuCheck) && sum_of(recipes, y=>prev(y)) == 89-1
             && measured(sum_of(recipes, y=>y) == 89)
 )
 
 achievement(
     title = "Too Special For My Recipe List", points = 2,
     description = "Cook a Tayce Special",
-    trigger =  measuredIf(menuVal == 1) && prev(cooking) == 0x1c5
+    trigger =  measuredIf(menuCheck) && prev(cooking) == 0x1c5
             && cooking == 0x00
 )
 
@@ -919,14 +927,14 @@ for i in range(0,2) {
     achievement(
         title = ttl[i][0], points = 5,
         description = format("Upgrade your {0} Points past {1}",ttl[i][1],50-cl),
-        trigger =  measuredIf(menuVal == 1) && prev(lv) == 50-cl && lv > 50-cl
+        trigger =  measuredIf(menuCheck) && prev(lv) == 50-cl && lv > 50-cl
     )
 }
 
 achievement(
     title = "No Limits Afterall", points = 10,
     description = "Reach a Level of 28 with Mario",
-    trigger =  measuredIf(menuVal == 1) && prev(lvl) == 27 && lvl == 28
+    trigger =  measuredIf(menuCheck) && prev(lvl) == 27 && lvl == 28
 )
 
 for i in range(0,1) {
@@ -935,7 +943,7 @@ for i in range(0,1) {
     achievement(
         title = btf[i][0], points = 3,
         description = format("Read all of {0}",btf[i][1]),
-        trigger =  menuVal == 1 && prev(flags) == 10+i && flags == 11+i
+        trigger =  menuCheck && prev(flags) == 10+i && flags == 11+i
     )
 }
 
@@ -950,7 +958,7 @@ function letters() {
 achievement(
     title = "Post Party", points = 3, type = "missable",
     description = "Read all of the partner letters",
-    trigger =  menuVal == 1
+    trigger =  menuCheck
             && sum_of(letters(),y=>(prev(y))) == length(letters())-1
             && sum_of(letters(),y=>(y)) == length(letters())
 )
@@ -958,14 +966,14 @@ achievement(
 achievement(
     title = "Minigames", points = 5,
     description = "Win at every Minigame in the Minigame Room",
-    trigger =  menuVal == 1 && measured(tally_of([0x80042,0x80035,0x80036,0x80037],4,
+    trigger =  menuCheck && measured(tally_of([0x80042,0x80035,0x80036,0x80037],4,
                y=>once(prev(dialog) != y && dialog == y)))
 )
 
 leaderboard(
     title = "Whack-A-Mole",
     description = "Highest score earned in Whack-A-Mole",
-    start = menuVal == 1 && mainMap == 0x00 && subMap == 0x12 && prev(moleGame()) > 0 && moleGame() == 0,
+    start = menuCheck && mainMap == 0x00 && subMap == 0x12 && prev(moleGame()) > 0 && moleGame() == 0,
     cancel = always_false(),
     submit = always_true(),
     value = moleGame(4),
@@ -987,7 +995,7 @@ for i in range(0,1) {
             if (j == 2) val = jpG*2
         }
         function id(l=g) => 0x80000+l
-        str = menuVal == 1 && mainMap == 0x19 && subMap == 2-i && prev(dialog) != id() && dialog == id()
+        str = menuCheck && mainMap == 0x19 && subMap == 2-i && prev(dialog) != id() && dialog == id()
         leaderboard(
             title = format("{0} Attack{1}",mng[i],jmp),
             description = format("Most Coins earned in {0} Attack{1}",mng[i],jmp),
@@ -1012,7 +1020,7 @@ for i in range(0,1) {
 leaderboard(
     title = "Stylish Bombing",
     description = "Highest amount of Bombette's stylish moves performed in a single turn",
-    start =  menuVal == 1 && state == 1 && partner == 3
+    start =  menuCheck && state == 1 && partner == 3
           && prev(stylish) == 0 && stylish == 1
           && movecheck([0x92,0x93,0x94]),
     cancel = always_false(),
@@ -1024,7 +1032,7 @@ leaderboard(
 leaderboard(
     title = "Stylish Power Bouncing",
     description = "Highest amount of Mario's stylish moves performed in a single turn",
-    start =  menuVal == 1 && state == 1
+    start =  menuCheck && state == 1
           && prev(stylish) == 0 && stylish == 1
           && movecheck([0x20]),
     cancel = always_false(),
@@ -1065,7 +1073,7 @@ for i in range(0,1) {
     achievement(
         title = chv[i][0], points = 5,
         description = format("Perfectly perform all of {0}'s stylish moves in a single session",chv[i][1]),
-        trigger =  never(menuVal == 0)
+        trigger =  never(menuVal == 0 || music == 0xa5)
                 && measured(tally_of(chv[i][2],length(chv[i][2]),y=>once(style(y))))
     )
 }
@@ -1085,78 +1093,78 @@ for i in range(0,length(items)-1) {
 }
 
 rich_presence_conditional_display(menuVal == 0, "Mario is currently enjoying the Title Screen")
-rich_presence_conditional_display(menuVal == 1 && mainMap == 0 && subMap == 0x11, "Mario is currently setting up his playthrough{0} | {1} Mode | {2} Difficulty",
+rich_presence_conditional_display(menuCheck && mainMap == 0 && subMap == 0x11, "Mario is currently setting up his playthrough{0} | {1} Mode | {2} Difficulty",
 rich_presence_lookup("n", newGame, ngp),rich_presence_lookup("m", modeVal, modelookup),
 rich_presence_lookup("d", diffVal, difficultylookup))
-rich_presence_conditional_display(menuVal == 1 && mainMap == 0x18, "Mario is currently enjoying the ending parade{0} | {1} Mode | {2} Difficulty",
+rich_presence_conditional_display(menuCheck && mainMap == 0x18, "Mario is currently enjoying the ending parade{0} | {1} Mode | {2} Difficulty",
 rich_presence_lookup("n", newGame, ngp),rich_presence_lookup("m", modeVal, modelookup),
 rich_presence_lookup("d", diffVal, difficultylookup))
-rich_presence_conditional_display(menuVal == 1 && mainMap == 0 && subMap == 0x10, "Mario is currently enjoying a nice firework to celebrate his end of an adventure{0} | {1} Mode | {2} Difficulty",
+rich_presence_conditional_display(menuCheck && mainMap == 0 && subMap == 0x10, "Mario is currently enjoying a nice firework to celebrate his end of an adventure{0} | {1} Mode | {2} Difficulty",
 rich_presence_lookup("n", newGame, ngp),rich_presence_lookup("m", modeVal, modelookup),
 rich_presence_lookup("d", diffVal, difficultylookup))
 
-rich_presence_conditional_display(menuVal == 1 && __ornext(any_of([1,5,0x0d],y=>character == y)) && state != 1,"Peach and Twink are currently walking around {6}{0} | {1} Mode | {2} Difficulty",
+rich_presence_conditional_display(menuCheck && __ornext(any_of([1,5,0x0d],y=>character == y)) && state != 1,"Peach and Twink are currently walking around {6}{0} | {1} Mode | {2} Difficulty",
 rich_presence_lookup("n", newGame, ngp),rich_presence_lookup("m", modeVal, modelookup),
 rich_presence_lookup("d", diffVal, difficultylookup),rich_presence_value("Value", lvl, "VALUE"),
 rich_presence_lookup("i", byte(0x10f293), itemlookup),rich_presence_lookup("i", byte(0x10f292), itemlookup),
 rich_presence_lookup("a", icon, maplookup))
-rich_presence_conditional_display(menuVal == 1 && __ornext(any_of([1,5,7,0x0d],y=>character == y)) && state == 1 && music == 0x67,"Peach and Twink are currently fighting against Kammy Koopa{0} | {1} Mode | {2} Difficulty",
+rich_presence_conditional_display(menuCheck && __ornext(any_of([1,5,7,0x0d],y=>character == y)) && state == 1 && music == 0x67,"Peach and Twink are currently fighting against Kammy Koopa{0} | {1} Mode | {2} Difficulty",
 rich_presence_lookup("n", newGame, ngp),rich_presence_lookup("m", modeVal, modelookup),
 rich_presence_lookup("d", diffVal, difficultylookup),rich_presence_value("Value", lvl, "VALUE"),
 rich_presence_lookup("i", byte(0x10f293), itemlookup),rich_presence_lookup("i", byte(0x10f292), itemlookup),
 rich_presence_lookup("a", icon, maplookup))
-rich_presence_conditional_display(menuVal == 1 && __ornext(any_of([1,5,7,0x0d],y=>character == y)) && state == 1,"Peach and Twink are currently fighting around {6}{0} | {1} Mode | {2} Difficulty",
-rich_presence_lookup("n", newGame, ngp),rich_presence_lookup("m", modeVal, modelookup),
-rich_presence_lookup("d", diffVal, difficultylookup),rich_presence_value("Value", lvl, "VALUE"),
-rich_presence_lookup("i", byte(0x10f293), itemlookup),rich_presence_lookup("i", byte(0x10f292), itemlookup),
-rich_presence_lookup("a", icon, maplookup))
-
-rich_presence_conditional_display(menuVal == 1 && partner == 0 && state != 1,"Mario [Lv.{3} | {4}Boots | {5}Hammer] is currently walking around {6}{0} | {1} Mode | {2} Difficulty",
-rich_presence_lookup("n", newGame, ngp),rich_presence_lookup("m", modeVal, modelookup),
-rich_presence_lookup("d", diffVal, difficultylookup),rich_presence_value("Value", lvl, "VALUE"),
-rich_presence_lookup("i", byte(0x10f293), itemlookup),rich_presence_lookup("i", byte(0x10f292), itemlookup),
-rich_presence_lookup("a", icon, maplookup))
-rich_presence_conditional_display(menuVal == 1 && partner == 0 && state == 1 && music == 0x67,"Mario [Lv.{3} | {4}Boots | {5}Hammer] is currently fighting against Bowser{0} | {1} Mode | {2} Difficulty",
-rich_presence_lookup("n", newGame, ngp),rich_presence_lookup("m", modeVal, modelookup),
-rich_presence_lookup("d", diffVal, difficultylookup),rich_presence_value("Value", lvl, "VALUE"),
-rich_presence_lookup("i", byte(0x10f293), itemlookup),rich_presence_lookup("i", byte(0x10f292), itemlookup),
-rich_presence_lookup("a", icon, maplookup))
-rich_presence_conditional_display(menuVal == 1 && partner == 0 && state == 1,"Mario [Lv.{3} | {4}Boots | {5}Hammer] is currently fighting around {6}{0} | {1} Mode | {2} Difficulty",
+rich_presence_conditional_display(menuCheck && __ornext(any_of([1,5,7,0x0d],y=>character == y)) && state == 1,"Peach and Twink are currently fighting around {6}{0} | {1} Mode | {2} Difficulty",
 rich_presence_lookup("n", newGame, ngp),rich_presence_lookup("m", modeVal, modelookup),
 rich_presence_lookup("d", diffVal, difficultylookup),rich_presence_value("Value", lvl, "VALUE"),
 rich_presence_lookup("i", byte(0x10f293), itemlookup),rich_presence_lookup("i", byte(0x10f292), itemlookup),
 rich_presence_lookup("a", icon, maplookup))
 
-rich_presence_conditional_display(menuVal == 1 && partner == 5 && state != 1,"Mario [Lv.{3} | {4}Boots | {5}Hammer] and Goompa are currently walking around {6}{0} | {1} Mode | {2} Difficulty",
+rich_presence_conditional_display(menuCheck && partner == 0 && state != 1,"Mario [Lv.{3} | {4}Boots | {5}Hammer] is currently walking around {6}{0} | {1} Mode | {2} Difficulty",
 rich_presence_lookup("n", newGame, ngp),rich_presence_lookup("m", modeVal, modelookup),
 rich_presence_lookup("d", diffVal, difficultylookup),rich_presence_value("Value", lvl, "VALUE"),
 rich_presence_lookup("i", byte(0x10f293), itemlookup),rich_presence_lookup("i", byte(0x10f292), itemlookup),
 rich_presence_lookup("a", icon, maplookup))
-rich_presence_conditional_display(menuVal == 1 && partner == 5 && state == 1,"Mario [Lv.{3} | {4}Boots | {5}Hammer] and Goompa are currently fighting around {6}{0} | {1} Mode | {2} Difficulty",
+rich_presence_conditional_display(menuCheck && partner == 0 && state == 1 && music == 0x67,"Mario [Lv.{3} | {4}Boots | {5}Hammer] is currently fighting against Bowser{0} | {1} Mode | {2} Difficulty",
+rich_presence_lookup("n", newGame, ngp),rich_presence_lookup("m", modeVal, modelookup),
+rich_presence_lookup("d", diffVal, difficultylookup),rich_presence_value("Value", lvl, "VALUE"),
+rich_presence_lookup("i", byte(0x10f293), itemlookup),rich_presence_lookup("i", byte(0x10f292), itemlookup),
+rich_presence_lookup("a", icon, maplookup))
+rich_presence_conditional_display(menuCheck && partner == 0 && state == 1,"Mario [Lv.{3} | {4}Boots | {5}Hammer] is currently fighting around {6}{0} | {1} Mode | {2} Difficulty",
 rich_presence_lookup("n", newGame, ngp),rich_presence_lookup("m", modeVal, modelookup),
 rich_presence_lookup("d", diffVal, difficultylookup),rich_presence_value("Value", lvl, "VALUE"),
 rich_presence_lookup("i", byte(0x10f293), itemlookup),rich_presence_lookup("i", byte(0x10f292), itemlookup),
 rich_presence_lookup("a", icon, maplookup))
 
-rich_presence_conditional_display(menuVal == 1 && state != 1,"Mario [Lv.{3} | {4}Boots | {5}Hammer] and {6} [Lv.{7}] are currently walking around {8}{0} | {1} Mode | {2} Difficulty",
+rich_presence_conditional_display(menuCheck && partner == 5 && state != 1,"Mario [Lv.{3} | {4}Boots | {5}Hammer] and Goompa are currently walking around {6}{0} | {1} Mode | {2} Difficulty",
+rich_presence_lookup("n", newGame, ngp),rich_presence_lookup("m", modeVal, modelookup),
+rich_presence_lookup("d", diffVal, difficultylookup),rich_presence_value("Value", lvl, "VALUE"),
+rich_presence_lookup("i", byte(0x10f293), itemlookup),rich_presence_lookup("i", byte(0x10f292), itemlookup),
+rich_presence_lookup("a", icon, maplookup))
+rich_presence_conditional_display(menuCheck && partner == 5 && state == 1,"Mario [Lv.{3} | {4}Boots | {5}Hammer] and Goompa are currently fighting around {6}{0} | {1} Mode | {2} Difficulty",
+rich_presence_lookup("n", newGame, ngp),rich_presence_lookup("m", modeVal, modelookup),
+rich_presence_lookup("d", diffVal, difficultylookup),rich_presence_value("Value", lvl, "VALUE"),
+rich_presence_lookup("i", byte(0x10f293), itemlookup),rich_presence_lookup("i", byte(0x10f292), itemlookup),
+rich_presence_lookup("a", icon, maplookup))
+
+rich_presence_conditional_display(menuCheck && state != 1,"Mario [Lv.{3} | {4}Boots | {5}Hammer] and {6} [Lv.{7}] are currently walking around {8}{0} | {1} Mode | {2} Difficulty",
 rich_presence_lookup("n", newGame, ngp),rich_presence_lookup("m", modeVal, modelookup),
 rich_presence_lookup("d", diffVal, difficultylookup),rich_presence_value("Value", lvl, "VALUE"),
 rich_presence_lookup("i", byte(0x10f293), itemlookup),rich_presence_lookup("i", byte(0x10f292), itemlookup),
 rich_presence_lookup("p", partner, partnerlookup),rich_presence_value("Value", pLP, "VALUE"),
 rich_presence_lookup("a", icon, maplookup))
-rich_presence_conditional_display(menuVal == 1 && state == 1 && music > 5 && music < 0x10,"Mario [Lv.{3} | {4}Boots | {5}Hammer] and {6} [Lv.{7}] are currently fighting against {8}{0} | {1} Mode | {2} Difficulty",
-rich_presence_lookup("n", newGame, ngp),rich_presence_lookup("m", modeVal, modelookup),
-rich_presence_lookup("d", diffVal, difficultylookup),rich_presence_value("Value", lvl, "VALUE"),
-rich_presence_lookup("i", byte(0x10f293), itemlookup),rich_presence_lookup("i", byte(0x10f292), itemlookup),
-rich_presence_lookup("p", partner, partnerlookup),rich_presence_value("Value", pLP, "VALUE"),
-rich_presence_lookup("b", measured(music*0x100+icon), bosslookup))
-rich_presence_conditional_display(menuVal == 1 && state == 1 && __ornext(any_of([5,0x66,0x67],y=>music == y)),"Mario [Lv.{3} | {4}Boots | {5}Hammer] and {6} [Lv.{7}] are currently fighting against {8}{0} | {1} Mode | {2} Difficulty",
+rich_presence_conditional_display(menuCheck && state == 1 && music > 5 && music < 0x10,"Mario [Lv.{3} | {4}Boots | {5}Hammer] and {6} [Lv.{7}] are currently fighting against {8}{0} | {1} Mode | {2} Difficulty",
 rich_presence_lookup("n", newGame, ngp),rich_presence_lookup("m", modeVal, modelookup),
 rich_presence_lookup("d", diffVal, difficultylookup),rich_presence_value("Value", lvl, "VALUE"),
 rich_presence_lookup("i", byte(0x10f293), itemlookup),rich_presence_lookup("i", byte(0x10f292), itemlookup),
 rich_presence_lookup("p", partner, partnerlookup),rich_presence_value("Value", pLP, "VALUE"),
 rich_presence_lookup("b", measured(music*0x100+icon), bosslookup))
-rich_presence_conditional_display(menuVal == 1 && state == 1,"Mario [Lv.{3} | {4}Boots | {5}Hammer] and {6} [Lv.{7}] are currently fighting around {8}{0} | {1} Mode | {2} Difficulty",
+rich_presence_conditional_display(menuCheck && state == 1 && __ornext(any_of([5,0x66,0x67],y=>music == y)),"Mario [Lv.{3} | {4}Boots | {5}Hammer] and {6} [Lv.{7}] are currently fighting against {8}{0} | {1} Mode | {2} Difficulty",
+rich_presence_lookup("n", newGame, ngp),rich_presence_lookup("m", modeVal, modelookup),
+rich_presence_lookup("d", diffVal, difficultylookup),rich_presence_value("Value", lvl, "VALUE"),
+rich_presence_lookup("i", byte(0x10f293), itemlookup),rich_presence_lookup("i", byte(0x10f292), itemlookup),
+rich_presence_lookup("p", partner, partnerlookup),rich_presence_value("Value", pLP, "VALUE"),
+rich_presence_lookup("b", measured(music*0x100+icon), bosslookup))
+rich_presence_conditional_display(menuCheck && state == 1,"Mario [Lv.{3} | {4}Boots | {5}Hammer] and {6} [Lv.{7}] are currently fighting around {8}{0} | {1} Mode | {2} Difficulty",
 rich_presence_lookup("n", newGame, ngp),rich_presence_lookup("m", modeVal, modelookup),
 rich_presence_lookup("d", diffVal, difficultylookup),rich_presence_value("Value", lvl, "VALUE"),
 rich_presence_lookup("i", byte(0x10f293), itemlookup),rich_presence_lookup("i", byte(0x10f292), itemlookup),
