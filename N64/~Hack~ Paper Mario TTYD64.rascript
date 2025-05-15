@@ -40,6 +40,24 @@ function mHP (i=0) => byte(0x10f290+i)
 function turn (i=0) => bit(i,0x0dc074)
 function enemyPTR(i, j=0, l=byte) => baseChain(0x0dc150+j,[i],l)
 function movecheck (i) => __ornext(any_of(i,y=>moveID == y))
+function letters() {
+    Array = []
+    for i in range(0,18) {
+        array_push(Array, bit((4+i)%8, 0x0dbc85+(4+i)/8))
+    }
+    return Array
+}
+function style (i,check) {
+    if (length(i) == 2) stl = i[1]
+    else stl = 1
+    if (check == marioMoves) mv = movecheck(i[0])
+    else {
+        if (i[0] == 0xb6) mv = prior(moveID) == 0xb6
+        else mv = movecheck([i[0]])
+    }
+    
+    return mv && state == 1 && prev(stylish) == stl-1 && stylish == stl
+}
 function badges(grp) {
     Array = []
     Array2 = []
@@ -66,7 +84,8 @@ function generalGuy() {
     for i in range(0,4) {
         ept = tbyte(0x0dc150+i*4)
         ehp = enemyPTR(0x01BB,i*4)
-        array_push(Array,  once(ept != 0x00 && prev(ehp) > ehp
+        edd = enemyPTR(0x01FA,i*4)
+        array_push(Array,  once(ept != 0x00 && edd > 0 && prev(ehp) - ehp == edd
                         && never(once(prev(fp) != fp
                         && never(roundEnd)))))
     }
@@ -76,10 +95,10 @@ function crystalKing() {
     Array = []
     for i in range(1,20) {
         for j in range(1,i) {
-            ept = tbyte(0x0dc150)
+            ept = ptrSlot1
             ehp = enemyPTR(0x01BB)
             if (i < 20) array_push(Array,  ept != 0x00 && prev(ehp) - ehp == i)
-            else array_push(Array,  ept != 0x00 && prev(ehp) - ehp >= i)
+            else array_push(Array,  ept != 0x00 && prev(ept) == ept && prev(ehp) - ehp >= i)
         }
     }
     for i in range(1,20) {
@@ -90,7 +109,7 @@ function crystalKing() {
 function bowser(badges) {
     Array = []
     Array2 = []
-    for i in range(0,127) {
+    for i in range(0,63) {
         array_push(Array, all_of(badges, y=>word(0x10f498+2*i) != y))
     }
     return Array
@@ -153,7 +172,7 @@ titles = {
         ["Huffin' and Puffin'","Cloudy with a Chance of Hatred","Saving the Flower's Power"],
         ["Aren't You Getting Bored?","Keeping Me Entertained In The Cold"],
         ["Scared Yet?","I Am The Monstar Now"],
-        ["Freeze!","Crystal King Hard","Crytsalized Agony"],
+        ["Freeze!","Shattered Crystals","Crytsalized Agony"],
         ["Bowser's Best Minion?","See You Next Time..."],
         ["King of the Koopas","Bowser's Rage","Besting Bowser Badgeless"],
         ["Bli Bla Bloop","His Size Is Just For Show"],
@@ -231,6 +250,23 @@ mapsIcons = [
     ["Shiver Snowfield",0x29],["Starborn Valley",0x2a],["Shiver Mountain",0x2b],["Mario's House",0x2c],
 ]
 
+partnerMoves = [
+    [0x85,2],[0x86],[0x88],
+    [0x8b,2],[0x8c],[0x8d,2],[0x8e,2],
+    [0x91],[0x92],[0x93],[0x94],
+    [0x97],[0x98],[0x99],[0x9a],
+    [0xb5],[0xb6],[0xb7,2],[0xb8,2], //0xb6 needs Prior
+    [0xa3],[0xa4],[0xa5],[0xa6],
+    [0xa9,2],[0xaa],[0xab],[0xac],
+    [0xaf,2],[0xb0],[0xb1],[0xb2]
+]
+
+marioMoves = [
+    [[0x03,0x04,0x05],2],[[0x08]],[[0x09,0x0e,0x14]],[[0x0a,0x11,0x15,0x17,0x22],4],
+    [[0x0d],2],[[0x0f]],[[0x1a,0x1b,0x1c],2],[[0x1f]],[[0x20]],
+    [[0x21],3],[[0x25,0x27],2],[[0x2b,0x2d],2],[[0x2e,0x2f],4],[[0x30]]
+]
+
 modelookup = {}
 difficultylookup = {}
 itemlookup = {}
@@ -287,28 +323,30 @@ icon = byte(0x0dbf1a)
 dialog = dword(0x154c38)
 newGame = byte(0x356009)
 stylish = byte(0x434fe1)
-smG = dword(0x521128)
-jpG = dword(0x518be0)
+ptrSlot1 = tbyte(0x0dc150)
 round = turn(1)+turn(2)
-roundEnd = prev(round) == 2 && round == 0
+roundEnd = prev(round) == 2 && round != 2
 menuCheck = menuVal == 1 && music != 0xa5
 
 test = [[mLog,always_true()],"Test"]
-bsGK = [[lLog,any_of([4,8], y=>tbyte(0x0dc150+y) != 0 && enemyPTR(0x01BB,y) < 0x02)],
-        [mLog,trigger_when(repeated(5, roundEnd))],
+bsGK = [[lLog,any_of([4,8], y=>ptrSlot1 != 0 && tbyte(0x0dc150+y) != 0 && enemyPTR(0x01BB,y) < 0x02),
+         once(ptrSlot1 != 0 && enemyPTR(0x01FA) > 0 && prev(enemyPTR(0x01BB)) - enemyPTR(0x01BB) == enemyPTR(0x01FA) && never(repeated(5, roundEnd)))],   
         "without hurting anyone but Goomba King and surviving 5 rounds before attacking"]
 bsKG = [[lLog,mHP(1) < mHP()/2],
         "without Mario ever having less than half of his maximum HP"]
-bsTK = [[lLog,any_of([pTRN == 1,mTRN == 1 && mMVE != 0x01], y=>y && tbyte(0x0dc150) != 0 && prev(enemyPTR(0x01BB)) > enemyPTR(0x01BB))],
+bsTK = [[lLog,any_of([pTRN == 1,mTRN == 1 && mMVE != 0x01], y=>y && ptrSlot1 != 0
+      && enemyPTR(0x01FA) > 0 && prev(enemyPTR(0x01BB)) - enemyPTR(0x01BB) == enemyPTR(0x01FA))],
         "while only attacking Tutankoopa with the Hammer"]
 bsTB = [[lLog, mHP(1) > 5, pHP > 5],
         "while only staying in Danger or Peril with both Mario and his partner"]
 bsGG = [[lLog,any_of(generalGuy(), y=>y)],
         "while only using FP attacks"]
 bsLP = [[lLog,any_of([0,1], y=>turn(3+y) == 1 && mMVE == 0x02),
-         any_of([0x04,0x08,0x0C,0x10], y=>tbyte(0x0dc150+y) != 0 && prev(enemyPTR(0x01BB,y)) > enemyPTR(0x01BB,y))],
+         any_of([0x04,0x08,0x0C,0x10], y=>tbyte(0x0dc150+y) != 0
+      && enemyPTR(0x01FA,y) > 0 && prev(enemyPTR(0x01BB,y)) - enemyPTR(0x01BB,y) == enemyPTR(0x01FA,y))],
         "without hurting anyone but Lava Piranha and using no Items"]
-bsHP = [[lLog,once(prev(fp) != fp && never(roundEnd)) && tbyte(0x0dc150) != 0x00 && prev(enemyPTR(0x01BB)) > enemyPTR(0x01BB)],
+bsHP = [[lLog,once(prev(fp) != fp && never(roundEnd)) && ptrSlot1 != 0x00
+      && enemyPTR(0x01FA) > 0 && prev(enemyPTR(0x01BB)) - enemyPTR(0x01BB) == enemyPTR(0x01FA)],
         "without using FP attacks to hurt Huff N. Puff"]
 bsCK = [[rLog,funcCalcSpec(crystalKing(),20,0xbd)],
         "while doing at least 20 damage to Crystal King per round"]
@@ -387,6 +425,7 @@ for i in range (0,1) {
                     else if (l == 1 && ii == 6) prog = "missable"
                     else prog = ""
                     if (l == 0 && ii == 5) log = dialog == 0xe00c6 && load == 1
+                    else if (l == 0 && ii == 16) log = dialog == 0x1300a9 && load == 1
                     else log = prev(win) == 0 && win == 1
                     achievement(
                         title = titles["bosses"][17*l+ii][i], points = 2+i*3, type = prog,
@@ -450,6 +489,7 @@ for i in range(0, length(bosses[0])-1) {
             }
         }
         if (i == 5) log = dialog == 0xe00c6 && load == 1
+        else if (i == 16) log = dialog == 0x1300a9 && load == 1
         else log = prev(win) == 0 && win == 1
         achievement(
             title = titles["bosses"][i][2], points = 10,
@@ -539,6 +579,9 @@ areaChapter1 = {
 
 areaChapter2 = {
     "tattle": [
+        bit1(0x0DBEE9), //Dark Puff
+        bit2(0x0DBEE9), //Pale Piranha
+        bit6(0x0DBEEA), //Pider
         bit2(0x0DBEDC), //Monty Mole
         bit1(0x0DBEDC), //Cleft
         bit0(0x0DBEF2), //Buzzar
@@ -577,6 +620,11 @@ areaChapter3 = {
         bit4(0x0DBEE3), //Hyper Paragoomba
         bit5(0x0DBEE3), //Hyper Cleft
         bit6(0x0DBEE3), //Clubba
+        bit0(0x0DBEE9), //Fire Bros.
+        bit4(0x0DBEE9), //Boomerang Bros. (wrongly uses The Master note)
+        bit5(0x0DBEE9), //Flower Fuzzy
+        bit0(0x0DBEEF), //Dark Craw
+        bit1(0x0DBEEF), //Big Bandit
         bit5(0x0DBEF2), //Tubba's Heart
         bit3(0x0DBEF2), //Tubba Blubba
     ],
@@ -614,7 +662,7 @@ areaChapter4 = {
         [0x490]
     ],
     "blocks": [
-        [0x456,0x457,0x45B,0x45D,0x470,0x471,0x473,0x479,0x498,0x49A,0x49D,0x49E,0x4A1]
+        [0x456,0x457,0x45B,0x45D,0x470,0x473,0x479,0x498,0x49D,0x49E,0x4A1]
     ]
 }
 
@@ -625,6 +673,7 @@ areaChapter5 = {
         bit6(0x0DBEE2), //Hurt Plant
         bit7(0x0DBEE2), //M. Bush
         bit5(0x0DBEE1), //Putrid Piranha
+        bit7(0x0DBEEA), //Bulky Bob-omb
         bit2(0x0DBEEB), //White Magikoopa
         bit3(0x0DBEE1), //Lava Bubble
         bit4(0x0DBEE1), //Spike Top
@@ -915,7 +964,7 @@ achievement(
 achievement(
     title = "Too Special For My Recipe List", points = 2,
     description = "Cook a Tayce Special",
-    trigger =  measuredIf(menuCheck) && prev(cooking) == 0x1c5
+    trigger =  menuCheck && prev(cooking) == 0x1c5
             && cooking == 0x00
 )
 
@@ -923,18 +972,18 @@ for i in range(0,2) {
     ttl = [["A Heartful Reward","Heart"],["Feeling The Flower's Power","Flower"],["Badged Up","Badge"]]
     cl = (i/2)*20
     lv =  byte(0x10f297-(i/1)*3)
-    if (i == 2) byte(0x10f29b)
+    if (i == 2) lv = byte(0x10f29b)
     achievement(
         title = ttl[i][0], points = 5,
         description = format("Upgrade your {0} Points past {1}",ttl[i][1],50-cl),
-        trigger =  measuredIf(menuCheck) && prev(lv) == 50-cl && lv > 50-cl
+        trigger = menuCheck && prev(lv) == 50-cl && lv > 50-cl
     )
 }
 
 achievement(
     title = "No Limits Afterall", points = 10,
     description = "Reach a Level of 28 with Mario",
-    trigger =  measuredIf(menuCheck) && prev(lvl) == 27 && lvl == 28
+    trigger = menuCheck && prev(lvl) == 27 && lvl == 28
 )
 
 for i in range(0,1) {
@@ -943,16 +992,8 @@ for i in range(0,1) {
     achievement(
         title = btf[i][0], points = 3,
         description = format("Read all of {0}",btf[i][1]),
-        trigger =  menuCheck && prev(flags) == 10+i && flags == 11+i
+        trigger = menuCheck && prev(flags) == 10+i && flags == 11+i
     )
-}
-
-function letters() {
-    Array = []
-    for i in range(0,18) {
-        array_push(Array, bit((4+i)%8, 0x0dbc85+(4+i)/8))
-    }
-    return Array
 }
 
 achievement(
@@ -966,9 +1007,19 @@ achievement(
 achievement(
     title = "Minigames", points = 5,
     description = "Win at every Minigame in the Minigame Room",
-    trigger =  menuCheck && measured(tally_of([0x80042,0x80035,0x80036,0x80037],4,
-               y=>once(prev(dialog) != y && dialog == y)))
+    trigger =  menuCheck && measured(tally_of([0x42,0x35,0x36,0x37],4,
+               y=>once(prev(dialog) != 0x80000+y && dialog == 0x80000+y)))
 )
+
+for i in range(0,1) {
+    chv = [["Nice Moves, Partner","the partner",partnerMoves],["Buy It, Use It, Style It","Mario",marioMoves]]
+    achievement(
+        title = chv[i][0], points = 5,
+        description = format("Perfectly perform all of {0}'s stylish moves in a single session",chv[i][1]),
+        trigger =  never(menuVal == 0 || music == 0xa5)
+                && measured(tally_of(chv[i][2],length(chv[i][2]),y=>once(style(y,chv[i][2]))))
+    )
+}
 
 leaderboard(
     title = "Whack-A-Mole",
@@ -981,24 +1032,25 @@ leaderboard(
 )
 
 for i in range(0,1) {
-    mng = ["Smash","Jump"]
+    mng = [["Smash",[0x6c,0x08]],["Jump",[0x80,0x10]]]
     for j in range(0,i*2) {
         jmp = ""
         g = 0x42
         b = 0x44
-        val = smG/3
+        chain = baseChain(0x0b0f9c,mng[i][1],dword)
+        val = chain/3
         if (i == 1) {
             jmp = format(" - {0}-Blocks",5+j*2)
             g = 0x35+j
             b = 0x34
-            val = jpG
-            if (j == 2) val = jpG*2
+            val = chain
+            if (j == 2) val = chain*2
         }
         function id(l=g) => 0x80000+l
         str = menuCheck && mainMap == 0x19 && subMap == 2-i && prev(dialog) != id() && dialog == id()
         leaderboard(
-            title = format("{0} Attack{1}",mng[i],jmp),
-            description = format("Most Coins earned in {0} Attack{1}",mng[i],jmp),
+            title = format("{0} Attack{1}",mng[i][0],jmp),
+            description = format("Most Coins earned in {0} Attack{1}",mng[i][0],jmp),
             start = str,
             cancel = always_false(),
             submit = always_true(),
@@ -1006,8 +1058,8 @@ for i in range(0,1) {
             format = "Value"
         )
         leaderboard(
-            title = format("{0} Attack{1} - Win Streak",mng[i],jmp),
-            description = format("Most Wins in a row in {0} Attack{1}",mng[i],jmp),
+            title = format("{0} Attack{1} - Win Streak",mng[i][0],jmp),
+            description = format("Most Wins in a row in {0} Attack{1}",mng[i][0],jmp),
             start = str,
             cancel = always_false(),
             submit = __ornext(prev(mainMap) != mainMap || prev(subMap) != subMap || dialog == id(b)),
@@ -1041,46 +1093,21 @@ leaderboard(
     format = "Value"
 )
 
-partnerMoves = [
-    [0x85,2],[0x86],[0x88],
-    [0x8b,2],[0x8c],[0x8d,2],[0x8e,2],
-    [0x91],[0x92],[0x93],[0x94],
-    [0x97],[0x98],[0x99],[0x9a],
-    [0xb5],[0xb6],[0xb7,2],[0xb8,2], //0xb6 needs Prior
-    [0xa3],[0xa4],[0xa5],[0xa6],
-    [0xa9,2],[0xaa],[0xab],[0xac],
-    [0xaf,2],[0xb0],[0xb1],[0xb2]
-]
-
-marioMoves = [
-    [0x03,2],[0x08],[0x09],[0x0a,4],[0x0d,2],[0x0e],[0x0f], // 0x3 same as 0x4 and 0x5
-    [0x11,4],[0x14],[0x15,4],[0x17,4],[0x1a,2],[0x1f],[0x20], // 0x1a same as 0x1b and 0x1c
-    [0x21,3],[0x22,4],[0x25,2],[0x27,2],[0x2b,2],[0x2d,2],[0x2e,4],
-    [0x2f,4],
-]
-
-function style (i) {
-    if (length(i) == 2) stl = i[1]
-    else stl = 1
-    if (i[0] == 0xb6) mv = prior(moveID) == 0xb6
-    else if (i[0] == 3 || i[0] == 0x1a) mv = movecheck([i[0],i[0]+1,i[0]+2])
-    else mv = movecheck([i[0]])
-    return mv && state == 1 && prev(stylish) == stl-1 && stylish == stl
-}
-
-for i in range(0,1) {
-    chv = [["Nice Moves, Partner","the partner",partnerMoves],["Buy It, Use It, Style It","Mario",marioMoves]]
-    achievement(
-        title = chv[i][0], points = 5,
-        description = format("Perfectly perform all of {0}'s stylish moves in a single session",chv[i][1]),
-        trigger =  never(menuVal == 0 || music == 0xa5)
-                && measured(tally_of(chv[i][2],length(chv[i][2]),y=>once(style(y))))
-    )
-}
-
 ngp = {
     0: "",
     1: " | New Game+"
+}
+
+ttydlookup = {
+    0: "Rogueport",
+    1: "Petal Meadows",
+    2: "Boggly Woods",
+    3: "Glitz Pit",
+    4: "Twilight Trail",
+    5: "Pirate's Grotto",
+    6: "Riverside Station",
+    7: "X-Naut Fortress",
+    8: "Palace of Shadow"
 }
 
 
@@ -1102,6 +1129,19 @@ rich_presence_lookup("d", diffVal, difficultylookup))
 rich_presence_conditional_display(menuCheck && mainMap == 0 && subMap == 0x10, "Mario is currently enjoying a nice firework to celebrate his end of an adventure{0} | {1} Mode | {2} Difficulty",
 rich_presence_lookup("n", newGame, ngp),rich_presence_lookup("m", modeVal, modelookup),
 rich_presence_lookup("d", diffVal, difficultylookup))
+
+rich_presence_conditional_display(menuCheck && mainMap == 0x1d && state != 1,"Mario [Lv.{3} | {4}Boots | {5}Hammer] and {6} [Lv.{7}] are currently walking around {8}{0} | {1} Mode | {2} Difficulty",
+rich_presence_lookup("n", newGame, ngp),rich_presence_lookup("m", modeVal, modelookup),
+rich_presence_lookup("d", diffVal, difficultylookup),rich_presence_value("Value", lvl, "VALUE"),
+rich_presence_lookup("i", byte(0x10f293), itemlookup),rich_presence_lookup("i", byte(0x10f292), itemlookup),
+rich_presence_lookup("p", partner, partnerlookup),rich_presence_value("Value", pLP, "VALUE"),
+rich_presence_lookup("t", subMap, ttydlookup))
+rich_presence_conditional_display(menuCheck && mainMap == 0x1d && state == 1,"Mario [Lv.{3} | {4}Boots | {5}Hammer] and {6} [Lv.{7}] are currently fighting around {8}{0} | {1} Mode | {2} Difficulty",
+rich_presence_lookup("n", newGame, ngp),rich_presence_lookup("m", modeVal, modelookup),
+rich_presence_lookup("d", diffVal, difficultylookup),rich_presence_value("Value", lvl, "VALUE"),
+rich_presence_lookup("i", byte(0x10f293), itemlookup),rich_presence_lookup("i", byte(0x10f292), itemlookup),
+rich_presence_lookup("p", partner, partnerlookup),rich_presence_value("Value", pLP, "VALUE"),
+rich_presence_lookup("t", subMap, ttydlookup))
 
 rich_presence_conditional_display(menuCheck && __ornext(any_of([1,5,0x0d],y=>character == y)) && state != 1,"Peach and Twink are currently walking around {6}{0} | {1} Mode | {2} Difficulty",
 rich_presence_lookup("n", newGame, ngp),rich_presence_lookup("m", modeVal, modelookup),
