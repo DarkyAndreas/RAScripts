@@ -302,7 +302,7 @@ theArk = [[l, __ornext(xc < 2125.0 || xc > 2275.0 ||  zc > 7700.0) && prev(vehic
 airFleet = [[l, prev(weaponT)>weaponT]]
 ironJungle = [[l, prev(lives)>lives],[m, time/60 <= 90.0]]
 spaceGadget = [[l, prev(lives)>lives],[m, nScore+hScore+dScore<2000]]
-lostImpact  = [[r, funcCalc([rings-prev(rings)==1],2)]]
+lostImpact  = [[l, rings-prev(rings)==1]]
 gunFortress = [[l, prev(lives)>lives],[m, nScore<=1000]]
 blackComet = [[l, weaponA>50],[r, funcCalc([prev(weaponA)<weaponA],1)]]
 lavaShelter = [[m, time/60 <= 150.0]]

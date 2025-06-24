@@ -54,7 +54,6 @@ startCha = ctime == 0 && prev(state) == 4
 failCha = demoProtection || state == 0x15 || ctime == 0 && prev(state) != 4 && state == 4
 startChaGamma = ctime == 0x030000 && prev(state) == 4
 failChaGamma = demoProtection || state == 0x15 || ctime == 0x030000 && prev(state) != 4 && state == 4
-tailsWin = prev(winCheck) == 0 && winCheck == 1
 progressCheck = state != 0x15
 clearCheck = prev(flagPause) == 0 && prev(flagController) == 0 && prev(flagTime) == 0 && prev(state) == 0x0f && prev(npc) == 0 //&& byte(0x000ac779) == 1
 memCheck = flagPause == 0 && flagController == 0 && flagTime == 0 && state == 0x0f && npc == 0
@@ -78,9 +77,9 @@ stageNumb = [["Hedgehog Hammer",0x00],["Emerald Coast",0x01],["Windy Valley",0x0
 character = ["Sonic","Tails","Knuckles","Amy","Big","Gamma","Super Sonic"]
 
 charStage = {
-    0: ["Emerald Coast","Windy Valley","Casinopolis","Icecap","Sky Chase: Act 1","Twinkle Park","Speed Highway",
-        "Red Mountain","Sky Chase: Act 2","Sky Deck","Lost World","Final Egg"],
-    1: ["Windy Valley","Casinopolis","Icecap","Sky Chase: Act 1","Sand Hill","Sky Chase: Act 2","Sky Deck","Speed Highway"],
+    0: ["Emerald Coast","Windy Valley","Casinopolis","Icecap","Twinkle Park","Speed Highway",
+        "Red Mountain","Sky Deck","Lost World","Final Egg"],
+    1: ["Windy Valley","Casinopolis","Icecap","Sky Deck","Speed Highway"],
     2: ["Speed Highway","Casinopolis","Red Mountain","Lost World","Sky Deck"],
     3: ["Twinkle Park","Hot Shelter","Final Egg"],
     4: ["Twinkle Park","Icecap","Emerald Coast","Hot Shelter"],
@@ -147,7 +146,7 @@ function titles(i) {
         "Lost World":       ["No GPS-Map Available","Completely Lost in this Maze"],
         "Final Egg":        ["Ruining my Master's Plan","Crank the Heat Up!!"]
     }
-    upgrades = ["Shiny Accessory","Even I Could Create Such Tech","Better Protection for Harder Puches",
+    upgrades = ["Shiny Accessory","Even I Could Create Such Tech","Better Protection for Harder Punches",
                "Hammer Hardness","No Fish Can Escape Me Now", "Upgrades: Acquired!"]
     unlocks = ["A Search for Peace","Shopping Trip Gone Wrong","Big's Big Fishing Adventure",
                "Ready to Serve","The Final Stretch"]
@@ -379,7 +378,7 @@ for i in range (0, 6) {
             achievement(
                 title = format("{0}", titles(currentClear)), points = 2, type = "progression",
                 description = format("Complete {0} in {1}'{2} campaign",charStage[i][j],character[i],mult(character[i])),
-                trigger =  stage == stageID(charStage[i][j]) && char == i && clearCheck
+                trigger =  stage == stageID(charStage[i][j]) && char == i
                         && sum_of(collectables(currentClear),y=>prev(y)) == 0
                         && sum_of(collectables(currentClear),y=>y) == 1
             )
@@ -388,22 +387,20 @@ for i in range (0, 6) {
                 modeDesc = ["with the highest possible Score",
                             "as fast as possible",
                             "with the most Rings in hand"]
-                valCalc = [score, timeMeasure, ring]
+                valCalc = [score, timeMeasure, prev(ring)]
                 fmt = ["Value","Frames","Value"]
-                if (i == 1) win = tailsWin
-                else win = always_true()
                 if (i == 5 && l == 1) lib = false
                 else if (l != 1) lib = false
                 else lib = true
                 if (i == 5 && j == 1) lib = false
-                startANDsubmit = stage == stageID(charStage[i][j]) && submode == 0 && char == i && clearCheck && win
+                startANDsubmit = stage == stageID(charStage[i][j]) && submode == 0 && char == i && state == 5
                 if (substring(charStage[i][j],4,5) != "Chase" && substring(charStage[i][j],0,4) != "Sand")
                 leaderboard(
                     title = format("{0} - {1} - {2}", charStage[i][j],character[i],modeText[l]),
                     description = format("Complete {0} as {1} {2}", charStage[i][j],character[i],modeDesc[l]),
                     start = startANDsubmit,
-                    cancel = __ornext(!startANDsubmit),
-                    submit = startANDsubmit,
+                    cancel = always_false(),
+                    submit = always_true(),
                     value=valCalc[l], format=fmt[l], lower_is_better=lib)
             }
         }
@@ -492,7 +489,7 @@ for i in range (0, 6) {
                 description = format("Complete {0}{1} {2}", desc,bonus[j],type),
                 start = startANDsubmit,
                 cancel = always_false(),
-                submit = startANDsubmit,
+                submit = always_true(),
                 value=valCalc, format=fmt, lower_is_better=lib)
         }
     if (i > 0 && i < 6) {
@@ -663,6 +660,7 @@ achievement(
 )
 
 action = pointerChain([0x00],byte)
+interaction = pointerChain([0x01],byte)
 xCoord = pointerChain([0x20],float_be)
 yCoord = pointerChain([0x24],float_be)
 zCoord = pointerChain([0x28],float_be)
@@ -704,7 +702,10 @@ function objectCheck(type, logic) {
         else pointerChain6 = pointerChain([0x38,0x14 + (4*(2*i)),0x38,0x0C,0x02],word_be)
         if (logic == "") log = always_true()
         else if (logic == "bomb") log = pointerChain([0x38,0x14 + (4*(2*i)),0x2C],float_be) == 7.0
-        else if (logic == "ice") log = pointerChain([prev(pointerChain([0x38,0x14 + (4*(2*i))],dword_be)), 0x08], dword_be) != 0
+        else if (logic == "ice") log = dword_be((dword_be(prev(dword_be((dword_be((dword_be(
+        byte((dword_be(0x6B4450) & 0x1FFFFFF) + 0x08) * 4 + 0x6B4450)
+        & 0x01FFFFFF) + 0x38) & 0x1FFFFFF) + 0x14 + (4*(2*i)))
+        & 0x01FFFFFF) + 0x00) & 0x1FFFFFF) + 0x08) != 0
         else if (logic == "ring") log = pointerChain([0x38,0x14 + (4*(2*i)),0x01],byte) != 0x2f && never(ring < prev(ring))
         for j in range (0, 7) { //Only check the first 8 cause all 16 would be too much
             pointerChain3B = pointerChain([0x38,0x14 + (4*(2*j))],dword_be)
@@ -831,281 +832,150 @@ function charlie() {
     return Array
 }
 
-achievement(
-    title = "I Could Do This in My Sleep", points = 10,
-    description = "As Sonic complete Emerald Coast without using more than 3 springs, speed pads or spring pads",
-    trigger =  (never(failCha || stage != stageID("Emerald Coast") || demoProtection || char != 0 && char != 6)
-            && once(startCha)
-            && trigger_when(clearCheck))
-            || funcCalcP(objectCheck(types["Emerald Coast"], "emerald"),3, sub == 0 && xCoord >= 2765.0 && xCoord <= 5310.0)
-)
+l = 0
+m = 1
+r = 2
 
-achievement(
-    title = "Being So up High Is Pretty Shocking", points = 10,
-    description = "As Sonic complete Windy Valley with an electric shield and without ever having more 35 Rings in hand",
-    trigger =  (never(failCha || stage != stageID("Windy Valley") || demoProtection || char != 0 && char != 6
-            || ring > 35)
-            && once(startCha)
-            && trigger_when(clearCheck && shield == 1))
-)
+sEC = [[r, funcCalcP(objectCheck(types["Emerald Coast"], "emerald"),3, sub == 0 && xCoord >= 2765.0 && xCoord <= 5310.0)]]
+sWV = [[l, ring > 35],[m, trigger_when(shield == 1)]]
+sCO = [[r, funcCalc(multCalc(5,"casino"),20)]]
+sIC = [[l, ring > 20, submode == 1]]
+sTP = [[l, enemyScore != 0, any_of(objectCheck(types["itemBox"],"bomb"), y=>y)]]
+sSH = [[r, funcCalc(interaction("jumpS"),4)]]
+sRM = [[r, funcCalc([(__ornext(any_of([0x09,0x0a,0x14,0x24], y=>action == y)) 
+        && prev(action) != 0x25 && prev(action) != action && interaction != 0x13)],4)]]
+sSD = [[m, trigger_when(ring == 60)]]
+sLW = [[r,  funcCalcS([once(always_true()),
+            tally_of(multCalc(5,"ring"), 1,y=>y && never(ring < prev(ring))),
+            deduct(all_of(interaction("jumpS"),y=>y)
+         && never(ring < prev(ring)))],startCha,[0,6])]]
+sFE = [[r, funcCalcN(interaction("jumpS"),4,prev(sub) != sub)]]
+tWV = [[r, funcCalc(interaction("groundT"),2)]]
+tCO = [[l, prev(icons) < icons]]
+tIC = [[l, submode == 1],[r, funcCalc(objectCheck(types["Icecap"], "ice"),8)]]
+tSD = [[m, ftime < 0x003200],[r, funcCalcP(interaction("groundT"),5,once(state == 0x0f && never(once(action == 0x2d))))]]
+tSH = [[r, funcCalc(interaction("flyT"),2)]]
+kSH = [[r, funcCalc(interaction("groundK"),5)]]
+kCO = [[r, funcCalc(interaction("jump"),4)]]
+kRM = [[l, all_of(interaction("groundJump"), y=>y)]]
+kLW = [[l, all_of(interaction("flyK"), y=>y)]]
+kSD = [[r, funcCalc([rotate(1), rotate(2), rotate(3)],2)]]
+aTP = [[l, ring != 0]]
+aHS = [[l, zeroMarker == 1]]
+aFE = [[l, action >= 0x13 && action <= 0x16]]
+gFE = [[l, __ornext(controlY < 128-128/4 || controlY > 128+128/4) && state != 0x10]]
+gEC = [[l, ring != 0, any_of(objectCheck(types["spring"], ""), y=>y)]]
+gWV = [[m, trigger_when(ring == 30)]]
+gRM = [[r,  funcCalcS([once(always_true()),
+            tally_of(objectCheck(types["ring"], "ring"), 1,y=>y),
+            deduct((prev(anim) != 0x70) && anim == 0x70 && never(ring < prev(ring)))],startChaGamma,[5])]]
+gHS = [[r, funcCalcGamma([prev(enemyScore) < enemyScore],18)]]
 
-achievement(
-    title = "Fighting the Addiction", points = 10,
-    description = "As Sonic complete Casinopolis without earning more than 20 Rings from the tables",
-    trigger =  (never(failCha || stage != stageID("Casinopolis") || demoProtection || char != 0 && char != 6)
-            && once(startCha)
-            && trigger_when(clearCheck))
-            || funcCalc(multCalc(5,"casino"),20)
-)
+cheevo = {
+    "Sonic": [
+    ["I Could Do This in My Sleep","without using more than 3 springs, speed pads or spring pads",sEC],
+    ["Being So up High Is Pretty Shocking","with an electric shield and without ever having more 35 Rings in hand",sWV],
+    ["Fighting the Addiction","without earning more than 20 Rings from the tables",sCO],
+    ["Cold Crash Due to Cold Cash","without collecting more than 20 Rings",sIC],
+    ["Sparing the Park Animals","without defeating any badniks",sTP],
+    ["I'm Faster on Land Than in the Sky","without jumping more than 4 times",sSH],
+    ["I Feel a Burning in My Core","without using more than 4 rockets, springs, ladders or ziplines",sRM],
+    ["Small Pocket Issue","with exactly 60 Rings in hand",sSD],
+    ["You Better Not Lose Your Head in Here!","where each 8th Ring earns you a jump",sLW],
+    ["Nuts and Bolts on My Legs","without jumping more than 4 times per area",sFE]
+    ],
+    "Tails": [
+    ["It's Called Windy Valley for a Reason","without touching the ground more than 2 times",tWV],
+    ["I Don't Wanna Get Dirty in Here","without breaking any Item Boxes",tCO],
+    ["Avoiding Sharp Cuts With Sharp Turns","without breaking more than 8 Crystals",tIC],
+    ["Up in the Sky Is No One Who Can Stop Me","in less than 50 seconds and without touching the ground more than 5 times",tSD],
+    ["I Can Do It Like Sonic Too!","without flying more than 2 times",tSH]
+    ],
+    "Knuckles": [
+    ["Over and Across the City","without touching the ground more than 5 times",kSH],
+    ["Looking for Cash on the Ground","without jumping more than 4 times",kCO],
+    ["The Air Is Too Dense up Here","without jumping even once from the ground",kRM],
+    ["I Broke My Knuckles","without flying even once",kLW],
+    ["Never Losing Orientation Again","without changing the rotation more than 2 times",kSD]
+    ],
+    "Amy": [
+    ["Cash Is Worthless Compared to Sonic","without collecting any Rings",aTP],
+    ["He Lost His Glasses","without ever being scanned by ZERO",aHS],
+    ["My Final Straw of This Egg's Machine","without using the Hammer even once",aFE]
+    ],
+    "Gamma": [
+    ["My Wheels Are Broken","while only holding forward",gFE],
+    ["It's Like Defeating My Enemies, Quick and Easy","without collecting any Rings or using any springs",gEC],
+    ["Full Gas Tank","with exactly 30 Rings in hand",gWV],
+    ["My Fuel Are Rings","where each single Ring earns you a shot",gRM],
+    ["Must Protect My Masters Creations","without destroying more than 18 badniks",gHS]
+    ],
+}
 
-achievement(
-    title = "Cold Crash Due to Cold Cash", points = 10,
-    description = "As Sonic complete Icecap without collecting more than 20 Rings",
-    trigger =  (never(failCha || stage != stageID("Icecap") || submode == 1 || demoProtection || char != 0 && char != 6
-            || ring > 20)
-            && once(startCha)
-            && trigger_when(clearCheck))
-)
+for i in range(0, length(character)-1) {
+    cur = character[i]
+    if (dictionary_contains_key(cheevo, cur) == true) {
+        inf = cheevo[cur]
+        for j in range(0,length(inf)-1) {
+            lLogic = always_false()
+            mLogic = always_true()
+            rLogic = always_true()
+            current = cheevo[cur][j]
+            for l in range(0,length(current[2])-1) {
+                logic = current[2][l]
+                for ii in range(1,length(logic)-1) {
+                    if (logic[0] == 0) lLogic = lLogic || logic[ii]
+                    else if (logic[0] == 1) mLogic = mLogic && logic[ii]
+                    else if (logic[0] == 2) rLogic = rLogic && logic[ii]
+                }
+            }
+            if (i == 5) {
+                fail = failChaGamma
+                start = startChaGamma
+            }
+            else {
+                fail = failCha
+                start = startCha
+            }
+            if (i == 0) chpr = char != 0 && char != 6
+            else chpr = char != i
+            achievement(
+                title = current[0], points = 10,
+                description = format("As {0} complete {1} {2}",character[i],charStage[i][j],current[1]),
+                trigger =  never(fail || stage != stageID(charStage[i][j]) || demoProtection || chpr || lLogic)
+                        && once(start) && mLogic
+                        && trigger_when(state == 5)
+                        || rLogic
+            )
+        }
+    }
+}
 
-achievement(
-    title = "Sparing the Park Animals", points = 10,
-    description = "As Sonic complete Twinkle Park without defeating any badniks",
-    trigger =  (never(failCha || stage != stageID("Twinkle Park") || demoProtection || char != 0 && char != 6
-            || enemyScore != 0 || any_of(objectCheck(types["itemBox"],"bomb"), y=>y))
-            && once(startCha)
-            && trigger_when(clearCheck))
-)
+for i in range (0,1) {
+    cheev = [["I Like Lush Caves","Emerald Coast",zCoord >= 2030.0],
+             ["Wooow! What a Huge Area","Hot Shelter",xCoord <= 485.0 && xCoord >= -295.0
+              && yCoord >= 55.0 && zCoord <= -345.0 && zCoord >= -635.0]]
+    cheev2 = [["I'm Pretty Proud of Myself","earn at least 5000 Rings to build up a golden suprise",
+               prev(casinoRings) < 5000 && casinoRings >= 5000,always_true()],
+              ["Hero At Night","collect 5 Ideya's for a secret reward on the Night's Table",
+               prev(ideya) == 4 && ideya == 5,sub == 3]]
+    achievement(
+        title = cheev[i][0], points = 10,
+        description = format("As Big catch a fish in {0}'s hidden area",cheev[i][1]),
+        trigger =  progressCheck
+            && stage == stageID(cheev[i][1]) && char == 4
+            && cheev[i][2] && __ornext(action == 0x25 || action == 0x2d)
+    )
 
-achievement(
-    title = "I'm Faster on Land Than in the Sky", points = 10,
-    description = "As Sonic complete Speed Highway without jumping more than 4 times",
-    trigger =  (never(failCha || stage != stageID("Speed Highway") || demoProtection || char != 0 && char != 6)
-            && once(startCha)
-            && trigger_when(clearCheck))
-            || funcCalc(interaction("jumpS"),4)
-)
-
-achievement(
-    title = "I Feel a Burning in My Core", points = 10,
-    description = "As Sonic complete Red Mountain without using more than 4 rockets, springs, ladders or ziplines",
-    trigger =  (never(failCha || stage != stageID("Red Mountain") || demoProtection || char != 0 && char != 6)
-            && once(startCha)
-            && trigger_when(clearCheck))
-            || funcCalc([(__ornext(action == 0x09 || action == 0x0a || action == 0x14 || action == 0x24) && prev(action) != 0x25
-            && prev(action) != action)],4)
-)
-
-achievement(
-    title = "Small Pocket Issue", points = 10,
-    description = "As Sonic complete Sky Deck with exactly 60 Rings in hand",
-    trigger =  (never(failCha || stage != stageID("Sky Deck") || demoProtection || char != 0 && char != 6)
-            && once(startCha)
-            && trigger_when(clearCheck && ring == 60))
-)
-
-achievement(
-    title = "You Better Not Lose Your Head in Here!", points = 10,
-    description = "As Sonic complete Lost World where each 8th Ring earns you a jump",
-    trigger =  (never(failCha || stage != stageID("Lost World") || demoProtection || char != 0 && char != 6)
-            && once(startCha)
-            && trigger_when(clearCheck)
-            || funcCalcS([once(always_true()),
-                    tally_of(multCalc(5,"ring"), 1,y=>y && never(ring < prev(ring))),
-                    deduct(all_of(interaction("jumpS"),y=>y)
-                    && never(ring < prev(ring)))],startCha,[0,6]))
-)
-
-achievement(
-    title = "Nuts and Bolts on My Legs", points = 10,
-    description = "As Sonic complete Final Egg without jumping more than 4 times per area",
-    trigger =  (never(failCha || stage != stageID("Final Egg") || demoProtection || char != 0 && char != 6)
-            && once(startCha)
-            && trigger_when(clearCheck))
-            || funcCalcN(interaction("jumpS"),4,prev(sub) != sub)
-)
-
-
-achievement(
-    title = "It's Called Windy Valley for a Reason", points = 10,
-    description = "As Tails complete Windy Valley without touching the ground more than 2 times",
-    trigger =  (never(failCha || stage != stageID("Windy Valley") || demoProtection || char != 1)
-            && once(startCha)
-            && trigger_when(clearCheck) && tailsWin)
-            || funcCalc(interaction("groundT"),2)
-)
-
-achievement(
-    title = "I Don't Wanna Get Dirty in Here", points = 10,
-    description = "As Tails complete Casinopolis without breaking any Item Boxes",
-    trigger =  (never(failCha || stage != stageID("Casinopolis") || demoProtection || char != 1
-            || prev(icons) < icons)
-            && once(startCha)
-            && trigger_when(clearCheck) && tailsWin)
-)
-
-achievement(
-    title = "Avoiding Sharp Cuts With Sharp Turns", points = 10,
-    description = "As Tails complete Icecap without breaking more than 8 Crystals",
-    trigger =  (never(failCha || stage != stageID("Icecap") || submode == 1 || demoProtection || char != 1)
-            && once(startCha)
-            && trigger_when(clearCheck) && tailsWin)
-            || funcCalc(objectCheck(types["Icecap"], "ice"),8)
-)
-
-achievement(
-    title = "Up in the Sky Is No One Who Can Stop Me", points = 10,
-    description = "As Tails complete Sky Deck in less than 50 seconds and without touching the ground more than 5 times",
-    trigger =  (never(failCha || stage != stageID("Sky Deck") || demoProtection || char != 1)
-            && once(startCha) && ftime < 0x003200
-            && trigger_when(clearCheck) && tailsWin)
-            || funcCalcP(interaction("groundT"),5,once(state == 0x0f && never(once(action == 0x2d))))
-)
-
-achievement(
-    title = "I Can Do It Like Sonic Too!", points = 10,
-    description = "As Tails complete Speed Highway without flying more than 2 times",
-    trigger =  (never(failCha || stage != stageID("Speed Highway") || demoProtection || char != 1)
-            && once(startCha)
-            && trigger_when(clearCheck) && tailsWin)
-            || funcCalc(interaction("flyT"),2)
-)
-
-achievement(
-    title = "Over and Across the City", points = 10,
-    description = "As Knuckles complete Speed Highway without touching the ground more than 5 times",
-    trigger =  (never(failCha || stage != stageID("Speed Highway") || demoProtection || char != 2)
-            && once(startCha)
-            && trigger_when(clearCheck))
-            || funcCalc(interaction("groundK"),5)
-)
-
-achievement(
-    title = "Looking for Cash on the Ground", points = 10,
-    description = "As Knuckles complete Casinopolis without jumping more than 4 times",
-    trigger =  (never(failCha || stage != stageID("Casinopolis") || demoProtection || char != 2)
-            && once(startCha)
-            && trigger_when(clearCheck))
-            || funcCalc(interaction("jump"),4)
-)
-
-achievement(
-    title = "The Air Is Too Dense up Here", points = 10,
-    description = "As Knuckles complete Red Mountain without jumping even once from the ground",
-    trigger =  (never(failCha || stage != stageID("Red Mountain") || demoProtection || char != 2
-            || all_of(interaction("groundJump"), y=>y))
-            && once(startCha)
-            && trigger_when(clearCheck))
-)
-
-achievement(
-    title = "I Broke My Knuckles", points = 10,
-    description = "As Knuckles complete Lost World without flying even once",
-    trigger =  (never(failCha || stage != stageID("Lost World") || demoProtection || char != 2
-            || all_of(interaction("flyK"), y=>y))
-            && once(startCha)
-            && trigger_when(clearCheck))
-)
-
-achievement(
-    title = "Never Losing Orientation Again", points = 10,
-    description = "As Knuckles complete Sky Deck without changing the rotation more than 2 times",
-    trigger =  (never(failCha || stage != stageID("Sky Deck") || demoProtection || char != 2)
-            && once(startCha)
-            && trigger_when(clearCheck))
-            || funcCalc([rotate(1), rotate(2), rotate(3)],2)
-)
-
-achievement(
-    title = "Cash Is Worthless Compared to Sonic", points = 10,
-    description = "As Amy complete Twinkle Park without collecting any Rings",
-    trigger =  (never(failCha || stage != stageID("Twinkle Park") || demoProtection || char != 3
-            || ring != 0)
-            && once(startCha)
-            && trigger_when(clearCheck))
-)
-
-achievement(
-    title = "He Lost His Glasses", points = 10,
-    description = "As Amy complete Hot Shelter without ever being scanned by ZERO",
-    trigger =  (never(failCha || stage != stageID("Hot Shelter") || demoProtection || char != 3
-            || zeroMarker == 1)
-            && once(startCha)
-            && trigger_when(clearCheck))
-)
-
-achievement(
-    title = "My Final Straw of This Egg's Machine", points = 10,
-    description = "As Amy complete Final Egg without using the Hammer even once",
-    trigger =  (never(failCha || stage != stageID("Final Egg") || demoProtection || char != 3
-            || action >= 0x13 && action <= 0x16)
-            && once(startCha)
-            && trigger_when(clearCheck))
-)
-
-achievement(
-    title = "I Like Lush Caves", points = 10,
-    description = "As Big catch a fish in Emerald Coast's hidden area",
-    trigger =  progressCheck
-        && stage == stageID("Emerald Coast") && char == 4
-        && zCoord >= 2030.0 && __ornext(action == 0x25 || action == 0x2d)
-)
-
-achievement(
-    title = "Wooow! What a Huge Area", points = 10,
-    description = "As Big catch a fish in Hot Shelter's hidden area",
-    trigger =  progressCheck
-        && stage == stageID("Hot Shelter") && char == 4
-        && xCoord <= 485.0 && xCoord >= -295.0 && yCoord >= 55.0 && zCoord <= -345.0 && zCoord >= -635.0
-        && __ornext(action == 0x25 || action == 0x2d)
-)
-
-achievement(
-    title = "My Wheels Are Broken", points = 10,
-    description = "As Gamma complete Final Egg while only holding forward",
-    trigger =  (never(failChaGamma || stage != stageID("Final Egg") || demoProtection || char != 5
-            || __ornext(controlY < 128-128/4 || controlY > 128+128/4) && state != 0x10)
-            && once(startChaGamma)
-            && trigger_when(clearCheck))
-)
-
-achievement(
-    title = "It's Like Defeating My Enemies, Quick and Easy", points = 10,
-    description = "As Gamma complete Emerald Coast without collecting any Rings or using any springs",
-    trigger =  (never(failChaGamma || stage != stageID("Emerald Coast") || demoProtection || char != 5
-            || ring != 0 || any_of(objectCheck(types["spring"], ""), y=>y))
-            && once(startChaGamma)
-            && trigger_when(clearCheck))
-)
-
-achievement(
-    title = "Full Gas Tank", points = 10,
-    description = "As Gamma complete Windy Valley with exactly 30 Rings in hand",
-    trigger =  (never(failChaGamma || stage != stageID("Windy Valley") || demoProtection || char != 5)
-            && once(startChaGamma)
-            && trigger_when(clearCheck && ring == 30))
-)
-
-achievement(
-    title = "My Fuel Are Rings", points = 10,
-    description = "As Gamma complete Red Mountain where each single Ring earns you a shot",
-    trigger =  (never(failChaGamma || stage != stageID("Red Mountain") || demoProtection || char != 5)
-            && once(startChaGamma)
-            && trigger_when(clearCheck)) 
-            || funcCalcS([once(always_true()),
-                    tally_of(objectCheck(types["ring"], "ring"), 1,y=>y),
-                    deduct((prev(anim) != 0x70) &&
-                    anim == 0x70 &&
-                    never(ring < prev(ring)))],startChaGamma,[5])
-)
-
-achievement(
-    title = "Must Protect My Masters Creations", points = 10,
-    description = "As Gamma complete Hot Shelter without destroying more than 18 badniks",
-    trigger =  (never(failChaGamma || stage != stageID("Hot Shelter") || demoProtection || char != 5)
-            && once(startChaGamma)
-            && trigger_when(clearCheck))
-            || funcCalcGamma([prev(enemyScore) < enemyScore],18)
-)
+    achievement(
+        title = cheev2[i][0], points = 10+i/1*15,
+        description = format("As Sonic in Casinopolis {0}",cheev2[i][1]),
+        trigger =  progressCheck && __ornext(char == 0 || char == 6)
+            && stage == stageID("Casinopolis") && cheev2[i][3]
+            && casinoPointer != 0
+            && cheev2[i][2]
+    )
+}
 
 achievement(
     title = format("You Wanna Go Fishing Already?"), points = 2, type = "missable",
@@ -1115,42 +985,24 @@ achievement(
 )
 
 achievement(
-    title = format("Sorry Charlie"), points = 2, type = "missable",
-    description = format("Find a secret message on the Egg Carrier for someone called \"Charlie\""),
+    title = "Sorry Charlie", points = 2, type = "missable",
+    description = "Find a secret message on the Egg Carrier for someone called \"Charlie\"",
     trigger =  progressCheck
         && stage == stageID("outside the Egg Carrier")
         && npc == 0 && any_of(charlie(), y=>y)
 )
 
 achievement(
-    title = format("I'm Pretty Proud of Myself"), points = 10,
-    description = format("As Sonic in Casinopolis earn at least 5000 Rings to build up a golden suprise"),
-    trigger =  progressCheck && __ornext(char == 0 || char == 6)
-        && stage == stageID("Casinopolis")
-        && casinoPointer != 0
-        && prev(casinoRings) < 5000 && casinoRings >= 5000
-)
-
-achievement(
-    title = format("Hero At Night"), points = 25,
-    description = format("As Sonic in Casinopolis collect 5 Ideya's for a secret reward on the Night's Table"),
-    trigger =  progressCheck && __ornext(char == 0 || char == 6)
-        && stage == stageID("Casinopolis") && sub == 3
-        && casinoPointer != 0
-        && prev(ideya) == 4 && ideya == 5
-)
-
-achievement(
-    title = format("Overheating Self-Destruct"), points = 2,
-    description = format("Defeat the Egg Carrier in Sky Chase: Act 2 without shooting at it"),
+    title = "Overheating Self-Destruct", points = 2,
+    description = "Defeat the Egg Carrier in Sky Chase: Act 2 without shooting at it",
     trigger =  progressCheck
         && stage == stageID("Sky Chase: Act 2")
         && planeHealth > 0.0 && prev(eggHealth) == 6.0 && eggHealth == 0.0
 )
 
 achievement(
-    title = format("I Have This Weird Feeling of a Déjà-vu"), points = 2,
-    description = format("Find some secret lives in Final Egg which can only be accessed by a very slow platform"),
+    title = "I Have This Weird Feeling of a Déjà-vu", points = 2,
+    description = "Find some secret lives in Final Egg which can only be accessed by a very slow platform",
     trigger =  never(!progressCheck || stage != stageID("Final Egg")|| sub != 2)
             && unless(__ornext(xCoord <=-65.0 || xCoord >=75.0))
             && unless(yCoord <= -3015.0) && unless(__ornext(zCoord <=-345.0 || zCoord >=-225.0))
@@ -1301,4 +1153,4 @@ rich_presence_value("Value", ring, "VALUE"), rich_presence_value("Value", enemyS
 rich_presence_value("Frames", timeMeasure, "FRAMES"), rich_presence_value("Value", sum_of(emblemCalc(), y=>y), "VALUE"),
 rich_presence_lookup("mode", mode, modelookup))
 
-rich_presence_display(" \n//RP by DarkyAndreas")
+rich_presence_display(" \n//RP by Darky")

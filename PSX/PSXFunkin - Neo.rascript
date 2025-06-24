@@ -2,23 +2,15 @@
 // #ID = 25378
 
 nextScreen = byte(0x1d6b75)
-
 Screen = byte(0x1d6b74)
-
 Song = byte(0x1d6ca0)
-
 Health = word(0x1d6d58)
-
 Combo = word(0x1d6d5a)
-
 Score = dword(0x1d6d60)
-
 Difficulty = byte(0x1d6b91)
-
 Gamemode = byte(0x1d6c5c)
-
+GhostTap = byte(0x1d6c58)
 Time = dword(0x1d6d20)
-
 Completion = byte(0x1fff90)
 
 SongList = {
@@ -112,13 +104,13 @@ function p2 (i) {
 }
 
 function cheevo1(i, j) {
-    return never(Screen != 0x03 && Screen != 0x07) && once(Screen == 0x03) && Gamemode == j && Song == StorySong[i] &&
+    return never(Screen != 0x03 && Screen != 0x07) && once(Screen == 0x03) && Gamemode == j && GhostTap == 0 && Song == StorySong[i] &&
     prev(Completion) == 0 && Completion == 1
 }
 
 function cheevo2(i, j) {
     return never(Screen != 0x07) && never(prev(Health) > Health) && never(prev(Combo) > Combo) &&
-    once(prev(Time) > 0xf0000000 && Time < 0xf0000000) && Gamemode == j &&
+    once(prev(Time) > 0xf0000000 && Time < 0xf0000000) && Gamemode == j && GhostTap == 0 &&
     Song == i+SongID(i) && trigger_when(prev(Completion) == 0 && Completion == 1)
 }
 
@@ -153,11 +145,11 @@ for i in range(0x00,0x0f) {
 }
 
 function StartAndSubmit(i, j, z) {
-    return Screen == 0x07 && Difficulty == j && Gamemode == z && Song == i+SongID(i) && prev(Completion) == 0 && Completion == 1
+    return Screen == 0x07 && Difficulty == j && Gamemode == z && GhostTap == 0 && Song == i+SongID(i) && prev(Completion) == 0 && Completion == 1
 }
 
 function Cancel(i, j, z) {
-    return __ornext(Screen != 0x07 || Difficulty != j || Gamemode != z || Song != i+SongID(i))
+    return __ornext(Screen != 0x07 || Difficulty != j || Gamemode != z || GhostTap != 0 || Song != i+SongID(i))
 }
 
 for z in range(0,1) {
@@ -168,8 +160,8 @@ for z in range(0,1) {
                 description = format("Complete {0} on {1} Difficulty in {2} Mode with the highest possible score",
                 SongList[i], DifficultyText[j], GamemodeText[z]),
                 start = StartAndSubmit(i, j, z),
-                cancel = Cancel(i, j, z),
-                submit = StartAndSubmit(i, j, z),
+                cancel = always_false(),
+                submit = always_true(),
                 value = Score * 10, format="SCORE", lower_is_better=false)
         }
     }
