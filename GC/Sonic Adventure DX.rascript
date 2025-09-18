@@ -1,9 +1,6 @@
 // Sonic Adventure DX
 // #ID = 6333
 
-// Sonic Adventure 2
-// #ID = 3417
-
 function baseChain(first, offsets,lastType) {
     Array = [first & 0x1ffffff]
     if (length(offsets) > 1) {
@@ -368,19 +365,17 @@ function scoreCalculation(i) {
 }
 
 for i in range (0, 6) {
-    if (i < 6) {    
-        sum = sum_of(upgrades(i), y=>y)
-        val = length(upgrades(i))
+    if (i < 6) {
         tl = character[i]
         for j in range (0, length(charStage[i])-1) {
             currentClear = format("{0}{1}Clear",charStage[i][j],substring(character[i],0,3))
-            if (substring(charStage[i][j],4,5) != "Chase" && substring(charStage[i][j],0,4) != "Sand")
+            cSum = sum_of(collectables(currentClear),y=>y)
             achievement(
                 title = format("{0}", titles(currentClear)), points = 2, type = "progression",
                 description = format("Complete {0} in {1}'{2} campaign",charStage[i][j],character[i],mult(character[i])),
                 trigger =  stage == stageID(charStage[i][j]) && char == i
-                        && sum_of(collectables(currentClear),y=>prev(y)) == 0
-                        && sum_of(collectables(currentClear),y=>y) == 1
+                        && prev(cSum) == 0
+                        && cSum == 1
             )
             for l in range(0,2) {
                 modeText = ["Best Score","Best Clear Time","Most Rings"]
@@ -393,8 +388,8 @@ for i in range (0, 6) {
                 else if (l != 1) lib = false
                 else lib = true
                 if (i == 5 && j == 1) lib = false
-                startANDsubmit = stage == stageID(charStage[i][j]) && submode == 0 && char == i && state == 5
-                if (substring(charStage[i][j],4,5) != "Chase" && substring(charStage[i][j],0,4) != "Sand")
+                startANDsubmit =  stage == stageID(charStage[i][j]) && submode == 0 && char == i
+                               && __ornext(prev(cSum) == 0 && cSum == 1 || state == 5)
                 leaderboard(
                     title = format("{0} - {1} - {2}", charStage[i][j],character[i],modeText[l]),
                     description = format("Complete {0} as {1} {2}", charStage[i][j],character[i],modeDesc[l]),
@@ -405,12 +400,14 @@ for i in range (0, 6) {
             }
         }
         Array = array_map(titles("Upgrades"),y=>y)
+        uSum = sum_of(upgrades(i), y=>y)
+        uVal = length(upgrades(i))
         achievement(
             title = format("{0}", Array[i]), points = 5,
             description = format("Find all of {0}'{1} upgrades", character[i],mult(character[i])),
             trigger =  progressCheck
-                    && prev(sum) == val-1
-                    && sum == val
+                    && prev(uSum) == uVal-1
+                    && uSum == uVal
         )
     }
     sum = sum_of(collectables(i), y=>y)
@@ -788,12 +785,10 @@ function funcCalcP(func, val, pause) {
 function funcCalcS(cal,start,end) {
     func = []
     func2 = []
+    array_push(func2, once(always_true()))
     for i in range (0, length(cal)-1) {
-        if (i == 0) array_push(func2, cal[i])
-        else {
-            array_push(func, cal[i])
-            array_push(func2, cal[i])
-        }
+        array_push(func, cal[i])
+        array_push(func2, cal[i])
     }
     return measured(tally_of(func, 999, y=>y), when=once(start)) && trigger_when(always_false())
            || unless(tally_of(func2, 1, y=>y)) && //never(always_true()) //RATools refuses to create an always_true() ResetIf
@@ -844,9 +839,8 @@ sTP = [[l, enemyScore != 0, any_of(objectCheck(types["itemBox"],"bomb"), y=>y)]]
 sSH = [[r, funcCalc(interaction("jumpS"),4)]]
 sRM = [[r, funcCalc([(__ornext(any_of([0x09,0x0a,0x14,0x24], y=>action == y)) 
         && prev(action) != 0x25 && prev(action) != action && interaction != 0x13)],4)]]
-sSD = [[m, trigger_when(ring == 60)]]
-sLW = [[r,  funcCalcS([once(always_true()),
-            tally_of(multCalc(5,"ring"), 1,y=>y && never(ring < prev(ring))),
+sSD = [[m, trigger_when(prev(ring) == 60)]]
+sLW = [[r,  funcCalcS([tally_of(multCalc(5,"ring"), 1,y=>y && never(ring < prev(ring))),
             deduct(all_of(interaction("jumpS"),y=>y)
          && never(ring < prev(ring)))],startCha,[0,6])]]
 sFE = [[r, funcCalcN(interaction("jumpS"),4,prev(sub) != sub)]]
@@ -865,9 +859,8 @@ aHS = [[l, zeroMarker == 1]]
 aFE = [[l, action >= 0x13 && action <= 0x16]]
 gFE = [[l, __ornext(controlY < 128-128/4 || controlY > 128+128/4) && state != 0x10]]
 gEC = [[l, ring != 0, any_of(objectCheck(types["spring"], ""), y=>y)]]
-gWV = [[m, trigger_when(ring == 30)]]
-gRM = [[r,  funcCalcS([once(always_true()),
-            tally_of(objectCheck(types["ring"], "ring"), 1,y=>y),
+gWV = [[m, trigger_when(prev(ring) == 30)]]
+gRM = [[r,  funcCalcS([tally_of(objectCheck(types["ring"], "ring"), 1,y=>y),
             deduct((prev(anim) != 0x70) && anim == 0x70 && never(ring < prev(ring)))],startChaGamma,[5])]]
 gHS = [[r, funcCalcGamma([prev(enemyScore) < enemyScore],18)]]
 
@@ -939,12 +932,14 @@ for i in range(0, length(character)-1) {
             }
             if (i == 0) chpr = char != 0 && char != 6
             else chpr = char != i
+            currentClear = format("{0}{1}Clear",charStage[i][j],substring(character[i],0,3))
+            cSum = sum_of(collectables(currentClear),y=>y)
             achievement(
                 title = current[0], points = 10,
                 description = format("As {0} complete {1} {2}",character[i],charStage[i][j],current[1]),
-                trigger =  never(fail || stage != stageID(charStage[i][j]) || demoProtection || chpr || lLogic)
+                trigger =  never(fail || stage != stageID(charStage[i][j]) || chpr || demoProtection || lLogic)
                         && once(start) && mLogic
-                        && trigger_when(state == 5)
+                        && __ornext(trigger_when(prev(cSum) == 0 && cSum == 1 || state == 5))
                         || rLogic
             )
         }

@@ -32,9 +32,8 @@ function col(val,tp) {
         if (tp == "rank") array_push(Array,byte(savePointer()+rank+i))
         else if (tp == "gold") array_push(Array,bit(i+1, savePointer()+0x003c2c18))
         else if (tp == "challenge") {
-            if (i > 24) array_push(Array,bit(i%8, savePointer()+0x003c2c27))
-            if (i > 26) array_push(Array,bit(i%8, savePointer()+0x003c2c23))
-            else array_push(Array,bit(i, savePointer()+0x003c2c1c))
+            offs = [0,4,4,8,8,4,0,8,5,9,9,1,5,1,9,5,2,6,10,6,2,6,6,2,3,11,11,7]
+            array_push(Array,bit(i%8, savePointer()+0x003c2c1c+offs[i]))
         }
     }
     return Array
@@ -43,14 +42,13 @@ function lapComb() {
     Array = [[],[]]
     for i in range(0,1) {
         for j in range(0,2) {
-            array_push(Array[1], measured(always_true(),when=code(codes[i])))
+            array_push(Array[1], code(codes[i]))
             for l in range(0,2) {
                 if (j != l) {
-                    array_push(Array[1], measured(always_true(),when=lapData(j*4+0x50,i*4) >= lapData(l*4+0x50,i*4)))
+                    array_push(Array[1], lapData(j*4+0x50,i*4) <= lapData(l*4+0x50,i*4))
                 }
             }
-            array_push(Array[1], measured(lapData(j*4+0x50,i*4)%0.7 + (lapData(j*4+0x50,i*4)/4096.0)*60))
-            array_push(Array[0], all_of(Array[1], y=>y))
+            array_push(Array[0], measured(lapData(j*4+0x50,i*4)%0.7 + (lapData(j*4+0x50,i*4)/4096.0)*60, when=all_of(Array[1], y=>y)))
             for l in range(0, length(Array[1])) array_pop(Array[1])
         }
     }
@@ -65,7 +63,7 @@ function raceComb() {
 }
 function boostCalc(lang=0,val=5) {
     Array = []
-    laps = never(prev(lapData(0x20,lang)) == 0 && lapData(0x20,lang) != 0)
+    laps = never(prev(lapData(0x60,lang)) == 0 && lapData(0x60,lang) != 0)
     for i in range(1,val) {
         array_push(Array, deduct(lapCount(lang) > 1 && prev(lapCount(lang)) < lapCount(lang) && laps))
     }
@@ -74,33 +72,37 @@ function boostCalc(lang=0,val=5) {
 }
 function positionPercent(rt=0,lang=0) {
     Array = [[],[]]
-    for i in range(0,3) {
+    for i in range(1,3) {
         eleminated = lapData(0x4c,lang,byte,i*4)
         rivalPercent = lapData(0x48,lang,dword,i*4)
         rivalLap = lapData(0x3C,lang,dword,i*4)
         rivalPos = lapData(0x44,lang,dword,i*4)
         play1Percent = lapData(0x48,lang)
-        array_push(Array[0], never(play1Percent%0x555 > 0x70 && rivalPercent%0x555 < 0x163 && eleminated == 1))
-        array_push(Array[1], measured(rivalPercent%0x555 == 0x163, when=rivalPos == 4 - rivalLap, format="percent") && trigger_when(always_false()))
+        play1Lap = lapData(0x3C,lang)
+        array_push(Array[0], lapCount(lang) > 0 && play1Lap == rivalLap && play1Percent%0x555 > 0x70
+                          && play1Percent%0x555 < 0x163 && rivalPercent%0x555 < 0x163
+                          && eleminated == 1)
+        array_push(Array[1], unless(!code(codes[lang/4])) && measured(rivalPercent%0x555 == 0x163,
+                             when=funcStart(lang) && lapCount(lang) > 0 && rivalPos + rivalLap == 3 && track() == 0
+                          && track(4) == 1 && car() == 4 && mode == 1,
+                             format="percent") && trigger_when(always_false()))
     }
     return Array[rt]
 }
-function funcStart(lang=0,start=0) {
-    if (start == 0) st = code(codes[lang/4])
-    else st = always_true()
-    return st && once(prev(menu(lang,-4)) == 1 && menu(lang,4) != 7)
+function funcStart(lang=0) {
+    return once(prev(introCheck(lang)) == 0 && introCheck(lang) != 0)
 }
 function funcCalc(func,val,lang=0,fmt="raw") {
-    return measured(tally_of(func, val, y=>y), when=funcStart(lang), format=fmt) && trigger_when(always_false())
-           || never(tally_of(func, val+1, y=>y)) && always_false()
+    return unless(!code(codes[lang/4])) && measured(tally_of(func, val, y=>y), when=funcStart(lang), format=fmt) && trigger_when(always_false())
+           || unless(!code(codes[lang/4])) && never(tally_of(func, val+1, y=>y)) && always_false()
 }
 function funcCalcSpec(func,val,lang=0) {
     func2 = func
     array_push(func2, once(always_true()))
-    return unless(!code(codes[lang/4])) && measured(tally_of(func, val, y=>y), when=funcStart(lang,1)) && trigger_when(always_false())
+    return unless(!code(codes[lang/4])) && measured(tally_of(func, val, y=>y), when=funcStart(lang)) && trigger_when(always_false())
            || unless(!code(codes[lang/4])) && unless(tally_of(func2, 1, y=>y)) && never(menu(lang) == 1) && always_false()
 }
-function funcCalcNev(func,val,lang=0,fmt="raw") => measured(tally_of(func, val, y=>y), when=funcStart(lang), format=fmt) && trigger_when(always_false())
+function funcCalcNev(func,val,lang=0,fmt="raw") => unless(!code(codes[lang/4])) && measured(tally_of(func, val, y=>y), when=funcStart(lang), format=fmt) && trigger_when(always_false())
 function code(i) => __ornext(any_of(i, y=>ascii_string_equals(0x3ffe0c, y)))
 function pointer(i=0) => 0x003c2bac+i
 function savePointer() => savefile*0x88
@@ -109,7 +111,9 @@ function car(i=0,j=1) => byte(0x003c2e94+i*0x10+j)
 function lapData(i=0,lang=0,tp=dword,j=0) => baseChain(pointer(lang),[0x84+j,0x6a8,i],tp)
 function lapCount(lang=0) => lapData(0x3C,lang)
 function raceTime(lang=0) => baseChain(pointer(lang),[0x84,0x6a8,0x18,0x1c],dword)
-function carData(i=0,lang=0) => baseChain(pointer(lang),[0x84,i],dword)
+function gameData(lang=0) => baseChain(0x003c2b90+lang,[0x4C],dword)
+function carData(i=0,lang=0,tp=dword) => baseChain(pointer(lang),[0x84,i],tp)
+function introCheck(lang=0) => baseChain(pointer(lang),[0x80],dword)
 function racePosition(lang=0) => baseChain(pointer(lang),[0x84,0x6a8,0x18,0x00,0x3f4],dword)
 function boost(lang=0) => baseChain(pointer(lang),[0x84,0x7E0],byte)
 function controlls(i=0,lang=0) => bit(i,tbyte(0x003c2b70+lang)+0x28)
@@ -124,7 +128,7 @@ modelookupS = {}
 tracklookup = {}
 charslookup = {}
 
-V = [0,0,0]
+V = [0,0,0,0]
 US = 4
 rank = 0x003c2c04
 gold = 0x003c2c18
@@ -132,7 +136,8 @@ chal = 0x003c2c1c
 savefile = dword(0x003c2f34)
 mode = dword(0x003c2e7c)
 raceID = dword(0x003c2e78)
-starCalc = measured(tally_of(stars()[0], 102, y=>y)) && never(any_of(stars()[1],y=>y) || savefile == 0xffffffff || savefile != prev(savefile))
+starCalc =  measured(tally_of(stars()[0], 102, y=>y), when=savefile != 0xffffffff)
+         && never(any_of(stars()[1],y=>y) || savefile != prev(savefile))
 
 codes = [["YCMD","YCMI","YCMS","YCMX","YCMP"],["YCME"]]
 cars = ["Lightning McQueen","Sheriff","Luigi","Flo","Mater","Sarge",
@@ -143,20 +148,22 @@ tracks = [["Main Street","Willys Butte","Sarge's Boot Camp","Unused Track","Ligh
           ["Tailfin Pass","Underground Mines","Ghost Town","Wheel Well Motel","Streamside Road"]]
 modes = [["Story","Challenge","Challenge","Challenge","Story"],
         ["Normal Race","Elimination","Trophy Hunt","Beat the Clock","Rival Race"]]
-titles = [["Achievement 1","Achievement 2","Achievement 3","Achievement 4","Achievement X"],
-          ["Achievement 5","Achievement 6","Achievement 7","Achievement 8","Achievement Y"],
-          ["Achievement 9","Achievement 10","Achievement 11","Achievement 12","Achievement Z"],
-          ["Achievement 13","Achievement 14","Achievement 15","Achievement 16"],
-          ["Challenge 1","Challenge 2","Challenge 3","Challenge 4",
-           "Challenge 5","Challenge 6","Challenge 7","Challenge 8",
-           "Challenge 9","Challenge 10","Challenge 11","Challenge 12",
-           "Challenge 13","Challenge 14","Challenge 15","Challenge 16",
-           "Challenge 17"],
-          ["Token 1","Token 2","Token 3","Token 4",
-           "Token 5","Token 6","Token 7","Token 8",
-           "Token 9","Token 10","Token 11","Token 12",
-           "Token 13","Token 14","Token 15","Token 16",
-           "Token 17"]]
+titles = [["Otto Driives","Blinding Lights","London Tour","Fast and Furious","Bizarre Championship"],
+          ["Stars That Carry Your Name","Brighter Than the Night's Sky","The Queen's Treasure",
+           "The Golden Age","My Will and Actions Are Indomitable"],
+          ["Familiar Races","Radiation Sprint","Dead Valley Cruise","Wide Range Mischief","Keepin' It Hard"],
+          ["Star of the Championship","Golden Wheels","Don't Scratch My Paint"],
+          ["Push Yourself to the Limits, and Beyond","You Can't Outrun the Law",
+           "Bet the Roads on the Moon Ain't This Smooth","Precision German Engineering",
+           "Pardon Me, Young Man! You're Blocking My Road!","Drop and Give Me Twenty Miles",
+           "Want Me to Light the Way?","Quicker Than Light",
+           "There's a Whole Lot More to Racin' Than Just Winnin'","My Wheels Are Full of Beans",
+           "You Got a Lot of Stuff, Kid, but No Direction","È Bellissima! I'm Driving Like a Real Ferrari",
+           "Crash Seven Times but Start the Engine Eight Times","Low and Slow, Baby!",
+           "Low and Slow? Not My Style!","I'm Telling You Man, Every Third Drift Is Slower",
+           "I, Giorno Giovanni, Have a Dream!"],
+          ["Air Traffic Chaos","Willy's Golden Treasure","Training your Wheels",
+           "A Ghostly Trial","Here's Frank!","Rocky Troubles"]]
 trackOrder = [[0,0],[1,0],[0,1],[0,1,0x0a],
               [2,0],[0,2],[1,1,0x0e],
               [2,1],[1,2],[1,2,0x0c],
@@ -170,45 +177,44 @@ for i in range(0,4) {
         if (length(to) == 3) array_push(rv, to)
         tracklookup[to[0]*10 + to[1]] = tracks[to[0]][to[1]]
     }
-    areas = [3,2,2,2,3]
     cib = bit(i,savePointer()+0x003c2c15)
-    if (i == 2) v = 4
+    v2 = 3-i%1+i/4
+    if (i == 0) v = 5
+    else if (i == 2) v = 4
     else v = 6
-    V[0] = V[0]+areas[i]
+    V[0] = V[0]+v2
     V[1] = V[1]+v
     cr = rv[i]
     achievement(
-        title = titles[0][i], points = 5+i/4*5, type = "progression",
-        description = format("In Story Mode, win against {0} on {1}",cars[cr[2]],tracks[cr[0]][cr[1]]),
-        trigger = prev(savefile) == savefile && prev(cib) == 0 && cib == 1
+        title = titles[0][i], points = 5+i/4*5, type = "progression", id = 529929+i*3,
+        description = format("Win against {0} on {1} in Story Mode",cars[cr[2]],tracks[cr[0]][cr[1]]),
+        trigger = prev(savefile) == savefile && savefile != 0xffffffff && prev(cib) == 0 && cib == 1
     )
     achievement(
-        title = titles[1][i], points = 5+i/4*5,
-        description = format("In Story Mode, earn all stars and gold tokens up to {0}",cars[cr[2]]),
-        trigger =  prev(savefile) == savefile
-                && __ornext(any_of(col(V[0],"rank"), y=>prev(y) != 1 || any_of(col(V[0],"gold"), y=>prev(y) != 1)))
-                && all_of(col(V[0],"rank"), y=>y == 1 && all_of(col(V[0]-i-1,"gold"), y=>y == 1))
+        title = titles[1][i], points = 5+i/4*5, id = 529930+i*3,
+        description = format("Earn all stars and gold tokens up to {0} in Story Mode",cars[cr[2]]),
+        trigger =  prev(savefile) == savefile && savefile != 0xffffffff
+                && __ornext(any_of(col(V[0],"rank"), y=>prev(y) != 1) || any_of(col(V[0]-1-i,"gold"), y=>prev(y) != 1))
+                && all_of(col(V[0],"rank"), y=>y == 1) && all_of(col(V[0]-1-i,"gold"), y=>y == 1)
     )
     achievement(
-        title = titles[2][i], points = 5+i/4*5,
-        description = format("In Challenge Mode, complete all challenges up to {0}",tracks[cr[0]][cr[1]]),
-        trigger =  prev(savefile) == savefile
+        title = titles[2][i], points = 5+i/4*5, id = 529931+i*3,
+        description = format("Complete all challenges up to {0} in Challenge Mode",tracks[cr[0]][cr[1]]),
+        trigger =  prev(savefile) == savefile && savefile != 0xffffffff
                 && __ornext(any_of(col(V[1],"challenge"), y=>prev(y) != 1)) && all_of(col(V[1],"challenge"), y=>y == 1)
     )
     if (i == 4) {
         achievement(
-            title = titles[3][0], points = 5,
-            description = "In Story Mode, earn all 102 stars",
-            trigger =  prev(savefile) == savefile
+            title = titles[3][0], points = 10, id = 529944,
+            description = "Earn all 102 stars in Story Mode",
+            trigger =  prev(savefile) == savefile && savefile != 0xffffffff
                     && __ornext(any_of(col(V[0],"rank"), y=>prev(y) != 1)) && all_of(col(V[0],"rank"), y=>y == 1)
-                    || starCalc && savefile == 4
         )
         achievement(
-            title = titles[3][1], points = 5,
-            description = "In Story Mode, earn all 12 gold tokens",
-            trigger =  prev(savefile) == savefile
-                    && prev(flags([0,1])) == 11
-                    && measured(flags([0,1]) == 12)
+            title = titles[3][1], points = 10, id = 529945,
+            description = "Earn all 12 gold tokens in Story Mode",
+            trigger =  prev(savefile) == savefile && savefile != 0xffffffff
+                    && prev(flags([0,1])) == 11 && flags([0,1]) == 12
         )
     }
     m = i+i/4
@@ -217,7 +223,7 @@ for i in range(0,4) {
 }
 
 achievement(
-    title = titles[3][3], points = 1,
+    title = titles[3][2], points = 1,
     description = "Unlock new paintjobs by using 2 secret codes",
     trigger =  prev(savefile) == savefile
             && prev(bitcount(savePointer()+0x003c2c16)) == 1
@@ -246,85 +252,102 @@ tailfinPass = [[lE,repeated(41,prev(raceTime()) < raceTime()
             &&  never(prev(raceTime(US)) < raceTime(US) && controlls(0,US) == 0))]]
 sargesBootCamp = [[rE,funcCalcSpec(boostCalc(0,4),4)],
                   [rU,funcCalcSpec(boostCalc(US,4),4,US)]]
-gudmund = [[lE,once(prev(raceTime()) < raceTime() && lapCount() > 0 && controlls(8) == 0
-        &&  never(prev(raceTime()) < raceTime() && lapCount() > 0 && controlls(8) == 1))],
-           [lU,once(prev(raceTime(US)) < raceTime(US) && lapCount(US) > 0 && controlls(8,US) == 0
-        &&  never(prev(raceTime(US)) < raceTime(US) && lapCount(US) > 0 && controlls(8,US) == 1))]]
+gudmund = [[lE,once(prev(raceTime()) < raceTime() && lapCount() > 0 && controlls(9) == 0
+        &&  never(prev(raceTime()) < raceTime() && lapCount() > 0 && controlls(9) == 1))],
+           [lU,once(prev(raceTime(US)) < raceTime(US) && lapCount(US) > 0 && controlls(9,US) == 0
+        &&  never(prev(raceTime(US)) < raceTime(US) && lapCount(US) > 0 && controlls(9,US) == 1))]]
 undergroundMines = [[lE,lapData(0x28) < 0x8000],[lU,lapData(0x28,US) < 0x8000]]
-rustbucketStadium = [[mE,prev(lapData(0x4c,0,byte,0x10)) == 1],[mU,prev(lapData(0x4c,US,byte,0x10)) == 1]]
+rustbucketStadium = [[mE,prev(lapData(0x4c,0,byte,0x0c)) == 1],[mU,prev(lapData(0x4c,US,byte,0x0c)) == 1]]
 emma = [[lE,carData(0x7E8) != 0, carData(0x4AC) != 0],[lU,carData(0x7E8,US) != 0, carData(0x4AC,US) != 0]]
 ghostTown = [[lE,carData(0x800) < 13 && lapCount() == 2],[mE,lapCount() < 3],
-             [lU,carData(0x800,US) < 13 && lapCount(US) == 2],[mE,lapCount(US) < 3]]
+             [lU,carData(0x800,US) < 13 && lapCount(US) == 2],[mU,lapCount(US) < 3]]
 franksField = [[lE,repeated(101,prev(raceTime()) < raceTime() && carData(0x428) == 0
             &&  never(prev(raceTime()) < raceTime() && carData(0x428) != 0))],
                [lU,repeated(101,prev(raceTime(US)) < raceTime(US) && carData(0x428,US) == 0
             &&  never(prev(raceTime(US)) < raceTime(US) && carData(0x428,US) != 0))]]
 koji = [[rE,funcCalc([prev(carData(0x214)) == 0 && carData(0x214) != 0],5)],
         [rU,funcCalc([prev(carData(0x214,US)) == 0 && carData(0x214,US) != 0],5)]]
-wheelWellMotel = [[mE,repeated(3276, prev(lapData(0x48)) < lapData(0x48) && lapData(0x3C) > 0 && lapData(0x44) == 2)],
+wheelWellMotel = [[mE,repeated(3276, prev(lapData(0x48)) < lapData(0x48) && lapData(0x3C) > 0 && lapData(0x44) == 1)],
                   [rE,funcCalcNev([prev(lapData(0x48)) < lapData(0x48) && lapData(0x3C) > 0
-               &&  lapData(0x44) == 2],4096,fmt="percent")],
-                  [mU,repeated(3276, prev(lapData(0x48,US)) < lapData(0x48,US) && lapData(0x3C,US) > 0 && lapData(0x44,US) == 2)],
+               &&  lapData(0x44) == 1],4096,fmt="percent")],
+                  [mU,repeated(3276, prev(lapData(0x48,US)) < lapData(0x48,US) && lapData(0x3C,US) > 0 && lapData(0x44,US) == 1)],
                   [rU,funcCalcNev([prev(lapData(0x48,US)) < lapData(0x48,US) && lapData(0x3C,US) > 0
-               &&  lapData(0x44,US) == 2],4096,US,fmt="percent")]]
+               &&  lapData(0x44,US) == 1],4096,US,fmt="percent")]]
 streamsideRoad = [[lE,lapData(0x28) < 0x2000],[lU,lapData(0x28,US) < 0x2000]]
 windyValley = [[lE,lapData(0x28) < 0x1000],[lU,lapData(0x28,US) < 0x1000]]
-giovanni = [[lE,prev(carData(0x214)) == 0 && carData(0x214) != 0,carData(0x7E8) != 0,
-             repeated(41,prev(lapData(0x48)) < lapData(0x48) && lapData(0x3C) > 0
-         &&  lapData(0x44) > 1 && never(prev(lapData(0x3C)) < lapData(0x3C)))],
-            [rE,funcCalcNev([prev(lapData(0x48)) < lapData(0x48) && lapData(0x3C) > 0
-         &&  lapData(0x44) > 1 && never(prev(lapData(0x3C)) < lapData(0x3C))],555,fmt="percent")],
-            [lU,prev(carData(0x214,US)) == 0 && carData(0x214,US) != 0,carData(0x7E8,US) != 0,
-             repeated(41,prev(lapData(0x48,US)) < lapData(0x48) && lapData(0x3C,US) > 0
-         &&  lapData(0x44,US) > 1 && never(prev(lapData(0x3C,US)) < lapData(0x3C,US)))],
-            [rU,funcCalcNev([prev(lapData(0x48,US)) < lapData(0x48) && lapData(0x3C,US) > 0
-         &&  lapData(0x44,US) > 1 && never(prev(lapData(0x3C,US)) < lapData(0x3C,US))],555,US,fmt="percent")]]
+giovanni = [[lE,repeated(101,prev(raceTime()) < raceTime()
+         &&  carData(0x7e8) == 0 && never(carData(0x7e8) != 0
+         ||  boost() == 1)), prev(carData(0x7e8)) > 0
+         && prev(carData(0x7e8)) < 0x3015 && carData(0x7e8) == 0],
+            [rE, unless(!code(codes[0])) && measured(carData(0x7e8) >= 0x3015,when=funcStart(),format="percent")
+         &&  trigger_when(always_false())],
+            [lU,repeated(101,prev(raceTime(US)) < raceTime(US)
+         &&  carData(0x7e8,US) == 0 && never(carData(0x7e8,US) != 0
+         ||  boost(US) == 1)), prev(carData(0x7e8,US)) > 0
+         && prev(carData(0x7e8,US)) < 0x3015 && carData(0x7e8,US) == 0],
+            [rU, unless(!code(codes[1])) && measured(carData(0x7e8,US) >= 0x3015,when=funcStart(US),format="percent")
+         &&  trigger_when(always_false())]]
 
 cheevos = [
     [0x00,2,"in a single lap",mainStreet],
     [0x01,0,"while using at least 5 boosts per lap",ornamentAirport],
-    [0x04,2,"without entering the first corner before all active CPU racers are past the first U-turn",willysButte],
-    [0x0a,4,"without going into the offroad more than 3 times",otto],
+    [0x04,1,"without entering the first corner before all active CPU racers are past the first U-turn",willysButte],
+    [0x0a,5,"without going into the offroad more than 3 times",otto],
     [0x07,0,"without holding down the accelarator button for more than 2 seconds",tailfinPass],
     [0x05,3,"while using at least 4 boosts per lap",sargesBootCamp],
     [0x0e,5,"while only looking back",gudmund],
     [0x00,2,"without ever having less than 8 seconds left",undergroundMines],
-    [0x04,1,"while letting the worst car become 2nd",rustbucketStadium],
+    [0x04,1,"while letting the slowest car become 2nd",rustbucketStadium],
     [0x0c,5,"without drifting or falling off",emma],
-    [0x08,1,"in two laps while collecting at least 13 trophys in the first lap",ghostTown],
+    [0x08,2,"in two laps while collecting at least 13 trophys in the first lap",ghostTown],
     [0x02,0,"without staying on the ground for more than 5 seconds",franksField],
     [0x0b,5,"without going into the offroad more than 5 times",koji],
-    [0x09,2,"while saying at least 80% in second place",wheelWellMotel],
+    [0x09,1,"while staying at least 80% in second place",wheelWellMotel],
     [0x03,2,"without ever having less than 2 seconds left",streamsideRoad],
     [0x06,3,"without ever having 0 seconds left",windyValley],
-    [0x0d,5,"without drifting, going into the offroad or being second place or lower for over 3% of a lap",giovanni],
+    [0x0d,5,"while not driving for less than 4 seconds without a drift or boost and have each drift last at least 3 seconds",giovanni],
 ]
 
-/*
+function base(log) {
+    lLogic = [[always_false()],[always_false()]]
+    mLogic = [[always_true()],[always_true()]]
+    rLogic = [[],[]]
+    for j in range(0,length(log)-1) {
+        logic = log[j]
+        for l in range(1,length(logic)-1) {
+            if (logic[0] == 1 || logic[0] == 4) array_push(lLogic[logic[0]/4],logic[l])
+            else if (logic[0] == 2 || logic[0] == 5) array_push(mLogic[logic[0]/4],logic[l])
+            else array_push(rLogic[logic[0]/4],logic[l])
+        }
+    }
+    return [lLogic,mLogic,rLogic] 
+}
 
-Franks Field nu hurt Coin collect
-Ghost Town no hurt Coin collect
-Sarge's Boot Camp no hurt Coin collect
-Windy Valley no hurt Coin collect
-Willys Butte Gold Token without hitting cactus
-Rustbucket Shortcut all laps no boost
-Wheel Well Motel Shortcut no boost
+function log(l,m,r) {
+    Array = []
+    for i in range(0,1) {    
+        set = i*4
+        function logic() => (unless(!code(codes[i])) && never(menu(set,-4) == 1 || menu(set,-4) == 8 || any_of(l[i],y=>y))
+                && funcStart(set) && all_of(m[i],y=>y)
+                && trigger_when(carData(0x14,set) == 2 && racePosition(set) == 1))
+        if (length(r[i]) == 0) array_push(Array, logic())
+        else array_push(Array, (logic() || all_of(r[i],y=>y)))
+    }
+    return Array
+}
 
-Otto perform a jump that last 5 seconds
-Koji Complete full lap while only drifting
-Emma perform an uninterupted donut for 3 loops and still get 1st place on the same lap
-Giovanni keep red bar speed for at least 10 seconds straight
-Gudmund complete a Trophy Hunt race while only looking backwards
-*/
-
-function test(l,m,r) {
+function log2(j=0) {
     Array = []
     for i in range(0,1) {
         set = i*4
-        array_push(Array, (unless(!code(codes[i])) && never(menu(set,-4) == 1 || menu(set,-4) == 8 || any_of(l[i],y=>y))
-                && once(prev(menu(set,-4)) == 1 && menu(set,4) != 7) && all_of(m[i],y=>y)
-                && trigger_when(carData(0x14,set) == 2 && racePosition() == 1)
-                || any_of(r[i],y=>y)))
+        if (j == 0) log = prev(carData(0x510,set)) == 0 && carData(0x510,set) == 1
+        else log = prev(carData(0x510,set)) == 1 && baseChain(pointer(set),[0x84,0x4d0,0x08],dword) == 0
+        array_push(Array, (unless(!code(codes[i])) && never(introCheck(set) != 0
+                && gameData(set) == 8 && carData(0x228,set) != 0 && log
+                || menu(set,-4) != ~0) && once(once(prev(introCheck(set)) == 0
+                && introCheck(set) != 0) && prev(carData(0x228,set)) == 0
+                && carData(0x228,set) != 0) && trigger_when(prev(tokenState(set)) == 1
+                && tokenState(set) != 1)))
     }
     return Array
 }
@@ -334,46 +357,27 @@ for i in range(0,length(trackOrder)-1) {
     cr = trackOrder[i]
     cur = cheevos[i]
     cha = cur[1]
-    lLogic = [[],[]]
-    mLogic = [[],[]]
-    rLogic = [[],[]]
-    for j in range(0,length(cur[3])-1) {
-        logic = cur[3][j]
-        for l in range(1,length(logic)-1) {
-            for ii in range(1,6) {
-                if (logic[0] == 1 || logic[0] == 4) {
-                    array_push(lLogic[ii/4],logic[l])
-                }
-                else {
-                    if (logic[0] == 2 || logic[0] == 5) array_push(mLogic[ii/4],logic[l])
-                    else array_push(rLogic[ii/4],logic[l])
-                }
-            }
-        }
-    }
+    logic = base(cur[3])
     if (cha == 0 || cha == 5) des = format("{0} race",dc[cha/5])
     else des = format("'{0}' challenge",modes[1][cha])
     achievement(
-        title = format("{0}",titles[4][i]), points = 10,
-        description = format("As {0} on {1} complete the {2} {3}",cars[cur[0]],tracks[cr[0]][cr[1]],des,cur[2]),
-        trigger =  never(track() == cr[0] || track(4) != cr[1] || car() != cur[0] || mode != cha)
-                && (any_of(test(lLogic,mLogic,rLogic),y=>y))
+        title = format("{0}",titles[4][i]), points = 10, id = 529947+i,
+        description = format("As {0} on {1} win the {2} {3}",cars[cur[0]],tracks[cr[0]][cr[1]],des,cur[2]),
+        trigger =  never(track() != cr[0] || track(4) != cr[1] || car() != cur[0] || mode != cha)
+                && (any_of(log(logic[0],logic[1],logic[2]),y=>y))
     )
-    if (any_of([2,5], y=>i == y))
-    achievement(
-        title = format("{0}",titles[5][i]), points = 10,
-        description = format("Collect the gold token on {0} without hitting any",tracks[cr[0]][cr[1]]),
-        trigger =  never(track() == cr[0] || track(4) != cr[1] || mode != 0)
-                && (unless(!code(codes[0])) && never(menu(0,-4) == 1 || menu(0,-4) == 8)
-                && once(prev(menu(0,-4)) == 1 && menu(0,4) != 7) && once(always_true())
-                && prev(tokenState()) == 1 && tokenState() != 1
-                || unless(!code(codes[1])) && never(menu(US,-4) == 1 || menu(US,-4) == 8)
-                && once(prev(menu(US,-4)) == 1 && menu(US,4) != 7)
-                && trigger_when(carData(0x14,US) == 2 && racePosition(US) == 1))
-    )
+    if (any_of([1,2,5,10,11,15], y=>i == y)) {
+        achievement(
+            title = format("{0}",titles[5][V[2]]), points = 10,
+            description = format("Collect the gold token on {0} without getting hit by an obstacle",tracks[cr[0]][cr[1]]),
+            trigger =  never(track() != cr[0] || track(4) != cr[1] || mode != 0)
+                    && (any_of(log2(i%11),y=>y))
+        )
+        V[2] = V[2]+1
+    }
     for j in range(0,2) {
         if (j > 0 && all_of([0x0a,0x0b,0x0c], y=>array_contains(cr, y) == false)) {
-            val = V[2]
+            val = V[3]
             lbs = ["elimination","trophy hunt","timed"]
             cs = [2,1,1,3,3,1,2,3,1,3,3,2,1,2,3,1,2,1,3,1,2,1,1,2,2,3,3,1]
             leaderboard(
@@ -385,56 +389,50 @@ for i in range(0,length(trackOrder)-1) {
                 cancel =  always_false(),
                 submit =  always_true(),
                 value  =  max_of(raceComb()),
-                format =  "FRAMES"
+                format =  "FRAMES", lower_is_better = true
             )
-            V[2] = V[2]+1
+            V[3] = V[3]+1
         }
         else if (j == 0) {
             for l in range(0,1) {
-                lbs = [["Lap","single lap",(lapComb())],["Race","full race",raceComb()]]
-                 leaderboard(
-                    title = format("{0} - {1} Time - Story Mode",tracks[cr[0]][cr[1]],lbs[l][0]),
-                    description = format("Fastet time on a {1} of {0} in story mode",tracks[cr[0]][cr[1]],lbs[l][1]),
-                    start  =  raceID == i && __ornext(mode == 0 || mode == 5)
+                if (length(trackOrder[i]) == 3) md = 5
+                else md = 0
+                lbs = [["Lap","single lap",lapComb()],["Race","full race",raceComb()]]
+                leaderboard(
+                    title = format("{0} - {1} Time - {2}",tracks[cr[0]][cr[1]],lbs[l][0],modes[1][md-md/5]),
+                    description = format("Fastet {1} time on a {2} race of {0} in story mode",tracks[cr[0]][cr[1]],lbs[l][1],dc[md/5]),
+                    start  =  raceID == i && mode == md
                            && menuCall(1,menu(0,4) != 7 && carData(0x14) == 2 && racePosition() == 1,
                               menu(US,4) != 7 && carData(0x14,US) == 2 && racePosition(US) == 1),
                     cancel =  always_false(),
                     submit =  always_true(),
                     value  =  max_of(lbs[l][2]),
-                    format =  "FRAMES"
+                    format =  "FRAMES", lower_is_better = true
                 )
             }
         }
     }
 }
 
-/*Menu to load (32-bit)
-none - 0xffffffff
-Racing - 0x01
-Multiplayer Race? - 0x02
-Animation Test - 0x03
-Map Test? - 0x04
-Car select - 0x05
-Multiplayer Room? - 0x06
-Main Menu - 0x07
-Track select - 0x08
-SFX Test - 0x0a
-Voiceline Test - 0x0b
-Music Test - 0x0c
-Name - 0x0d
-Unlock Screen - 0x0e
-Intro Cutscene - 0x0f
-End Cutscene - 0x10
-Track select W/LAN - 0x12
-Logos - 0x13
-Codes - 0x14
-Image Cutscenes - 0x15*/
-
 for i in range(0, length(cars)-1) {
     charslookup[i] = cars[i]
 }
 
+challenges = flags([4,5,6,7,8,9,10,11,12,13,14,15])
+
+rich_presence_conditional_display(menuCall(1, menu(0,4) == 7,menu(US,4) == 7), "Currently watching a Demo")
+rich_presence_conditional_display(menuCall(2), "Currently in a Multiplayer Race")
+rich_presence_conditional_display(menuCall(6), "Currently setting up a Multiplayer Race")
 rich_presence_conditional_display(menuCall(7), "Currently in the Main Menu")
+rich_presence_conditional_display(menuCall(13), "Currently setting up their name")
+rich_presence_conditional_display(menuCall(14), "Congratulations! You've unlocked new content!")
+rich_presence_conditional_display(menuCall(15), "Currently watching the Intro Sequence")
+rich_presence_conditional_display(menuCall(16), "Currently watching the Ending Sequence")
+rich_presence_conditional_display(menuCall(18), "Currently selecting a Track in a Multiplayer Race")
+rich_presence_conditional_display(menuCall(19), "Currently watching the Game Logos")
+rich_presence_conditional_display(menuCall(20), "Currently entering some paintjob codes")
+rich_presence_conditional_display(menuCall(21), "Currently watching the Cutscene of Lightning's new Rival {0}",
+rich_presence_lookup("cars", car(1), charslookup))
 
 rich_presence_conditional_display(__ornext(mode == 0 || mode == 5) && menuCall(1), "{3} is currently racing against {4}, {5} and {6} on {7} | {0} Mode | {8} | {1}/102 Stars | {2}/12 Gold Tokens",
 rich_presence_lookup("mainMode", mode, modelookupM),rich_presence_value("Value",starCalc, "VALUE"),
@@ -448,16 +446,26 @@ rich_presence_value("Value",flags([0,1]), "VALUE"))
 rich_presence_conditional_display(__ornext(mode == 0 || mode == 5) && menuCall(8), "Currently selecting a track | {0} Mode | {1}/102 Stars | {2}/12 Gold Tokens",
 rich_presence_lookup("mainMode", mode, modelookupM),rich_presence_value("Value",starCalc, "VALUE"),
 rich_presence_value("Value",flags([0,1]), "VALUE"))
+rich_presence_conditional_display(__ornext(mode == 0 || mode == 5) && menuCall(7,menu(0,4) == 5,menu(US,4) == 5), "Currently reading the controlling instructions | {0} Mode | {1}/102 Stars | {2}/12 Gold Tokens",
+rich_presence_lookup("mainMode", mode, modelookupM),rich_presence_value("Value",starCalc, "VALUE"),
+rich_presence_value("Value",flags([0,1]), "VALUE"))
 
-rich_presence_conditional_display(mode != 0 && mode != 5 && menuCall(1), "{2} is currently racing against {3}, {4} and {5} on {6} | {0} Mode | {7} | {1}/28 Challenges",
-rich_presence_lookup("mainMode", mode, modelookupM),rich_presence_value("Value",flags([4,5,6,7,11,15]), "VALUE"),
+rich_presence_conditional_display(mode == 1 && menuCall(1), "{2} is currently racing against {3}, {4} and {5} on {6} | {0} Mode | {7} | {1}/28 Challenges",
+rich_presence_lookup("mainMode", mode, modelookupM),rich_presence_value("Value",challenges, "VALUE"),
+rich_presence_lookup("cars", car(), charslookup),rich_presence_lookup("cars", car(1), charslookup),
+rich_presence_lookup("cars", car(2), charslookup),rich_presence_lookup("cars", car(3), charslookup),
+rich_presence_lookup("tracks", track()*10+track(4), tracklookup),rich_presence_lookup("subMode", mode, modelookupS))
+rich_presence_conditional_display(__ornext(mode == 2 || mode == 3) && menuCall(1), "{2} is currently racing against the time on {6} | {0} Mode | {7} | {1}/28 Challenges",
+rich_presence_lookup("mainMode", mode, modelookupM),rich_presence_value("Value",challenges, "VALUE"),
 rich_presence_lookup("cars", car(), charslookup),rich_presence_lookup("cars", car(1), charslookup),
 rich_presence_lookup("cars", car(2), charslookup),rich_presence_lookup("cars", car(3), charslookup),
 rich_presence_lookup("tracks", track()*10+track(4), tracklookup),rich_presence_lookup("subMode", mode, modelookupS))
 rich_presence_conditional_display(mode != 0 && mode != 5 && menuCall(5), "Currently selecting a car | {0} Mode | {1}/28 Challenges",
-rich_presence_lookup("mainMode", mode, modelookupM),rich_presence_value("Value",flags([4,5,6,7,11,15]), "VALUE"))
+rich_presence_lookup("mainMode", mode, modelookupM),rich_presence_value("Value",challenges, "VALUE"))
 rich_presence_conditional_display(mode != 0 && mode != 5 && menuCall(8), "Currently selecting a track | {0} Mode | {1}/28 Challenges",
-rich_presence_lookup("mainMode", mode, modelookupM),rich_presence_value("Value",flags([4,5,6,7,11,15]), "VALUE"))
+rich_presence_lookup("mainMode", mode, modelookupM),rich_presence_value("Value",challenges, "VALUE"))
+rich_presence_conditional_display(mode != 0 && mode != 5 && menuCall(7,menu(0,4) == 5,menu(US,4) == 5), "Currently reading the controlling instructions | {0} Mode | {1}/28 Challenges",
+rich_presence_lookup("mainMode", mode, modelookupM),rich_presence_value("Value",challenges, "VALUE"))
 rich_presence_display(" \n//RP by Darky")
 
 

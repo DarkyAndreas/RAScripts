@@ -32,7 +32,6 @@ screen = byte(0x00ef3e00)
 zone = byte(0x00ef364e)
 wzone = word_be(0x00ef364e)
 dzone = word_be(0x00ef4610)
-azone = word_be(0x00ef479a)
 lzone = byte(0x00ef4610)
 lact = byte(0x00ef4611)
 actState = byte(0x00ef461e)
@@ -432,10 +431,12 @@ for i in range(0,2) {
     ttl = ["Shining in 3D","Super Seven","Let the Chaos Begin"]
     if (i==0) {
         des="your first"
+        m = ""
         p = 2
     }
     else {
         des="all 7"
+        m = "s"
         p = 10
     }
     if (i==2) tp="Super "
@@ -444,7 +445,7 @@ for i in range(0,2) {
     ems = calc(i)*6
     achievement(
         title = format("{0}",ttl[i]), points = p, type="",
-        description = format("[S3&K] Collect {0} {1}Chaos Emerald",des,tp),
+        description = format("[S3&K] Collect {0} {1}Chaos Emerald{2}",des,tp,m),
         trigger =  prot() && state == 0 && cheats() == 0 && cheats(2) == 0 && musicS3K == 0x8f
                 && prev(emd) == ems && emd == ems+1
     )
@@ -511,10 +512,11 @@ icecap = [[r, trigger_when(bit5(estate) == 1)]]
 launchBase = [[r, time()<3]]
 mushroomHill = [[r, trigger_when(rings == 50)]]
 flyinBattery = [[l, checkpointS3K == 0 && prev(screen) != 0x8c && screen == 0x8c, tally_of(scoreCalc(),10,y=>y)]]
-sandopolis = [[l, checkpointS3K != 0 && screen == 0x8c,
-    once(__ornext(darknessTime > prev(darknessTime) && darknessLevel <= prev(darknessLevel) && darknessLevel != 5
-      || prev(darknessLevel) > darknessLevel)
-    && never(once(coords()>=0x4feb && coords()<=0x50b0 && coords(4)>=0x525)))]]
+sandopolis = [[l, checkpointS3K != 0 && screen == 0x8c, once(__ornext(darknessTime > prev(darknessTime)
+           &&  darknessLevel <= prev(darknessLevel) && darknessLevel != 5
+           ||  prev(darknessLevel) > darknessLevel)
+           &&  never(once(coords()>=0x4feb && coords()<=0x50b0 && coords(4)>=0x525)))],
+              [r, once(musicS3K == 0x76)]]
 lavaReef = [[l, hitReset, repeated(5,prev(!hurt) && hurt)]]
 skySanctuary = [[l, rings>5]]
 deathEgg = [[l, death]]
@@ -566,8 +568,6 @@ for i in range(0,length(cheevo)-1) {
     if (zoneName == "Death Egg") ttrigger = trigger_when(prev(wzone) == S3K[i][1]*0x100+1 && wzone == S3K[i][2]*0x100)
     if (zoneAct == 0x201 || zoneAct == 0x701 || zoneAct == 0x400) p = 25
     else p = 10
-    if (i == 8) extra = coords() == 0x0140
-    else extra = always_true()
     achievement(
         title = format("{0}",cheevo[i][0]), points = p,
         description = format("[S3&K] Complete {0} Zone {1}as {2} {3}",zoneName,acts,chard,cheevo[i][3]),
@@ -576,7 +576,7 @@ for i in range(0,length(cheevo)-1) {
                 && never(screen == 0x04 || lives== 0 || actCheck || lLogic)
                 && state == 0 && cheats(2) == 0 && chars
                 && once(__ornext(prev(check) || screen == 0x8c || prev(wzone) != wzone)
-                && !check && checkpointS3K == 0 && extra && wzone == zoneAct)
+                && !check && checkpointS3K == 0 && wzone == zoneAct)
                 && rLogic && ttrigger
     )
 }

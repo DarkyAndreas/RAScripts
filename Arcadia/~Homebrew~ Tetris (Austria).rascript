@@ -2,6 +2,7 @@
 // #ID = 24691
 
 function score(i=0) => word_be(0x0002E0+i)
+function scrca(i=0) => score(i) - prev(score(i))
 function controls(i=0) => byte(0xf8+i)
 function screen() {
     Array = [[[],[]],[[],[]]]
@@ -33,7 +34,7 @@ for i in range(0,3) {
     cheevo = [["Easy Start",100,0x100,5],["Block for Block, Point for Point",500,0x500,10],
               ["Crushing the Triple-Digit",1000,0x1000,25],["Tetris Master",2000,0x2000,50]]
     cheevo2 = [["Double the Fun",100,0x100,10],["Pure Concentration",500,0x500,25]]
-    cheevo3 = [["Double It!",49],["Better Thrice Than Twice",97],["TETRIS!",257]]
+    cheevo3 = [["Double It!",0x31],["Better Thrice Than Twice",0x61],["TETRIS!",0x101]]
         achievement(
         title = cheevo[i][0], points = cheevo[i][3], type="progression",
         description = format("Reach a Score of {0} with one player",cheevo[i][1]),
@@ -49,15 +50,15 @@ for i in range(0,3) {
     achievement(
         title = cheevo3[i][0], points = i+2,
         description = format("Clear {0} Lines at once",i+2),
-        trigger = screen == 0xa0 && __ornext(any_of([0,2],y=>score(y) - prev(score(y)) ==  cheevo3[i][1]))
+        trigger = screen == 0xa0 && __ornext(any_of([0,2],y=>scrca(y) ==  cheevo3[i][1]))
     )
 }
 
 achievement(
     title = "Back 2 Black", points = 5,
     description = "Get a Back-to-Back Tetris",
-    trigger =  never(screen != 0xa0) && any_of([0,2],y=>repeated(2, score(y) - prev(score(y)) == 257
-            && never(score(y) - prev(score(y)) != 257)))
+    trigger =  never(screen != 0xa0) && any_of([0,2],y=>repeated(2, scrca(y) == 0x101
+            && never(scrca(y) == 0x11 || scrca(y) == 0x31 || scrca(y) == 0x61)))
 )
 
 achievement(
