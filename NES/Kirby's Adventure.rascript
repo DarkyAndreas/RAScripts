@@ -27,6 +27,7 @@ bossHBar = byte(0x059b)
 sfx = byte(0x0782)
 music = byte(0x0783)
 minigame = byte(0x6236)
+difficulty = byte(0x07d1)
 mngPrz = byte(0x07c2)
 mngPrz2 = byte(0x07c3)
 mngDraw = byte(0x6249)
@@ -83,9 +84,11 @@ for i in range(0,length(bitflags)-1) {
             array_push(flags, log)
         }
         if (i == 1) {
-            log = bit(7,0x0531+j)
-            array_push(bossFlags, log)
-            array_push(flags, log)
+            if (j < 6) {
+                log = bit(7,0x0531+j)
+                array_push(bossFlags, log)
+                array_push(flags, log)
+            }
         }
         if (i == 2) {
             sw = switches[j]
@@ -138,8 +141,8 @@ for i in range(0,length(boss)-1) {
         des = ["without taking damage or using copy abilities"]
         if (i == 6) {
             l = 1
-            logic[0] = HPcheck
-            logic[1] = abilityID == 0x08
+            logic[1] = abilityID != 0x08
+            bossID = stage != 0x0e
             array_push(des, "with the Hammer ability and without taking damage")
         }
         
@@ -152,7 +155,8 @@ for i in range(0,length(boss)-1) {
     else if (i == 5 || i == 7) {
         logic[0] = HPcheck
         des = ["without taking damage"]
-        if (i == 7) {
+        if (i == 5) bossID = stage != 0x6c
+        else {
             tp = ""
             bossDes = format("both forms of the {0}",boss[i])
             bossID = stage != 0x0f && stage != 0x10 && stage != 0xff00
@@ -163,9 +167,9 @@ for i in range(0,length(boss)-1) {
     achievement(
         title = titles["bossChallenge"][i+j+i/7], points = 10+j*15+(i/7)*15, type = tp,
         description = format("Defeat {0} {1}",bossDes,des[j]),
-        trigger =  never(bossID || health == 0xff || logic[0])
+        trigger =  never(bossID || health == 0xff || logic[j])
                 && once(prev(bossHBar) == 0xff && bossHBar == 0xf0)
-                && logic[1] && trigger
+                && trigger
     )
     if (i == 3)
     achievement(
@@ -184,7 +188,8 @@ for i in range(0,1) {
     achievement(
         title = ttl[i], points = 5+i*20,
         description = format("{0} without taking damage or using copy abilities",chl[i][0]),
-        trigger =  never(stage == 2+i*4 || health == 0xff || abilityID != 0xff || chl[i][2])
+        trigger =  never(stage == 2+i*4 || health == 0xff || prev(health) > health
+        || abilityID != 0xff || chl[i][2])
                 && once(prev(stage) != chl[i][1] && stage == chl[i][1])
                 && trigger_when(chl[i][3])
     )
@@ -213,13 +218,13 @@ for i in range(0,2) {
         description = format("Beat the {0}",des[i]),
         trigger =  mode == i && prev(stage) != 0x11 && stage == 0x11
     )
-    mng = [["Get four 1-ups in the Crane Fever",0x24,0x30,mngPrz == 2 && mngPrz2 == 2],
-           ["Win the Quick Draw",0x26,0x30,mngDraw == 5],
-           ["Catch every egg in Egg Catcher",0x33,0x2f,mngEgg == 30]]
+    mng = [["Get four 1-ups in the Crane Fever",0x24,0x17,mngPrz == 2 && mngPrz2 == 2],
+           ["Win the Quick Draw",0x26,0x16,mngDraw == 5],
+           ["Catch every egg in Egg Catcher",0x33,0x13,mngEgg == 30]]
     achievement(
         title = titles["minigame"][i], points = 25,
         description = format("{0} mini game on challenging difficulty",mng[i][0]),
-        trigger =  minigame == i && istate == mng[i][1] && prev(music) != mng[i][2] && music == mng[i][2]
+        trigger =  minigame == i && difficulty == 2 && istate == mng[i][1] && prev(music) == mng[i][2] && music != mng[i][2]
                 && mng[i][3]
     )
 }
@@ -255,7 +260,7 @@ achievement(
     trigger = ingame == 1 && prev(switches) == 0 && switches == 1
 )
 
-savedata = completion/8 + sum_of(flags,y=>y)
+savedata = completion/7 + completion/8 + sum_of(flags,y=>y)
 achievement(
     title = "Button Masher", points = 25,
     description = "Complete the Normal Mode on 100%",

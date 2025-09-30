@@ -939,7 +939,7 @@ for i in range(0, length(character)-1) {
                 description = format("As {0} complete {1} {2}",character[i],charStage[i][j],current[1]),
                 trigger =  never(fail || stage != stageID(charStage[i][j]) || chpr || demoProtection || lLogic)
                         && once(start) && mLogic
-                        && __ornext(trigger_when(prev(cSum) == 0 && cSum == 1 || state == 5))
+                        && trigger_when(__ornext(prev(cSum) == 0 && cSum == 1 || state == 5))
                         || rLogic
             )
         }
