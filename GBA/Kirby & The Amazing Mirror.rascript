@@ -1,6 +1,7 @@
 // Kirby & The Amazing Mirror
 // #ID = 769
 
+min = {}
 mirrorShards = []
 maps = []
 paint = []
@@ -110,10 +111,10 @@ for i in range(0,length(boss)-1) {
     )
 }
 
-for i in range(0,2) {
-    mng = [["Speed Eaters",0xfbdc3e44,0x003e40,0x003b1c,10],
+mng = [["Speed Eaters",0xfbdc3e44,0x003e40,0x003b1c,10],
            ["Crackity Hack",0xfa04401c,0x004018,0x003b10,5],
            ["Kirby Wave Ride",0xfa7c3fa4,0x003fa0,0x003b29,5]]
+for i in range(0,2) {
     cur = mng[i]
     trg = prev(subGame) != 0xff && subGame == 0xff
     achievement(
@@ -226,9 +227,53 @@ achievement(
     trigger = igCheck && prev(candy) == 1 && candy == 0
 )
 
-comp = story/10000 + sum_of(bitflags,y=>y)
+comp = story/9999 + sum_of(bitflags,y=>y)
 achievement(
     title = "Crazy Completionist", points = 25,
     description = "Achieve 100% completion on your save file.",
-    trigger = igCheck && prev(comp) == length(bitflags) && measured(comp == length(bitflags)+1,format="percent")
+    trigger =  __ornext(igCheck || ingame == 0xfff03a30) && prev(comp) < length(bitflags)+1
+            && measured(comp == length(bitflags)+1,format="percent")
 )
+
+/*Game State (32-bit)
+Logos (after Demo) - 0xffec3a34
+Logos - 0xebe04e40
+Title Screen (JP) - 0xfeb83b68
+Title Screen (US) - 0xfeb43b6c
+Title Screen (EU) - 0xfc7c3da4
+Intro - 0xfc983d88
+Demo - 0xfff43a2c
+Demo Bootout - 0x000c3a2c
+Main Menu - 0xf4084618
+Minigame Menu - 0xfe803ba0
+Minigame Loading - 0x26040000
+Speed Eaters - 0xfbdc3e44
+Crackity Hack - 0xfa04401c
+Kirby Wave Ride - 0xfa7c3fa4
+Collection Room - 0xf6d4434c
+Ingame - 0xffd43a4c
+Ingame Bootout - 0xff743aac
+Ending - 0xfd3c3ce4
+Ending Bootout - 0xfff03a30*/
+
+rich_presence_conditional_display(__ornext(any_of([0xffec3a34,0xebe04e40],y=>ingame == y)),
+"Kirby is currently being trampled while watching the Logos")
+rich_presence_conditional_display(__ornext(any_of([0xfeb83b68,0xfeb43b6c,0xfc7c3da4],y=>ingame == y)),
+"Kirby is currently taking a breather watching the Title Screen")
+rich_presence_conditional_display(__ornext(any_of([0xfc983d88],y=>ingame == y)),
+"Kirby is currently learning about the Amazing Mirror's Story")
+rich_presence_conditional_display(__ornext(any_of([0xfff43a2c,0x000c3a2c],y=>ingame == y)),
+"Kirby is currently watching a Demo of him and his friends")
+rich_presence_conditional_display(__ornext(any_of([0xf4084618],y=>ingame == y)),
+"Kirby is currently playing around in the Main Menu")
+rich_presence_conditional_display(__ornext(any_of([0xfe803ba0,0x26040000],y=>ingame == y)),
+"Kirby is currently preparing himself for the next minigame")
+for i in range(0,2) {
+    cur = mng[i]
+    min[cur[1]] = cur[0]
+    rich_presence_conditional_display(__ornext(any_of([cur[1]],y=>ingame == y)),
+    "Kirby is currently playing a game of '{0}' on difficulty Level {1}",
+    rich_presence_lookup("minigame", ingame, min),rich_presence_value("Value", byte(cur[2]), "VALUE"))
+}
+rich_presence_conditional_display(__ornext(any_of([0xffd43a4c,0xff743aac],y=>ingame == y)),
+"Kirby is currently ")

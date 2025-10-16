@@ -92,13 +92,13 @@ for i in range (0, 2) {
         trigger =  dword_be(0x003a3ae4) == 5 && prev(room) == 3 && ending[2][i]
     )
     leaderboard(
-    title = format("{0} Mansion - Most Money",ending[1][i]),
-    description = format("Most amount of money accumulated during the {0} mansion cleaning",ending[1][i]),
-    start = ending[2][i] && map == 2 && room == 6 && prev(byte(0x004d8212)) == 0 && byte(0x004d8212) == 1,
-    cancel = dword_be(0x003a3ae4) == 1,
-    submit = dword_be(0x003a3ae4) == 5 && prev(room) == 3,
-    value = measured(prev(money()*1000)), format="VALUE", lower_is_better=false
-)
+        title = format("{0} Mansion - Most Money",ending[1][i]),
+        description = format("Most amount of money accumulated during the {0} mansion cleaning",ending[1][i]),
+        start = ending[2][i] && map == 2 && room == 6 && prev(byte(0x004d8212)) == 0 && byte(0x004d8212) == 1,
+        cancel = dword_be(0x003a3ae4) == 1,
+        submit = dword_be(0x003a3ae4) == 5 && prev(room) == 3,
+        value = measured(prev(money()*1000)), format="VALUE", lower_is_better=false
+    )
 }
 
 achievement(
