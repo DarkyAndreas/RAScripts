@@ -40,7 +40,7 @@ roomlookup = {
 
 visited = []
 cleared = []
-rooms = [0x05,0x0d,0x0f,0x11,0x13,0x17,0x23,0x25,0x29,0x31,0x3b,0x3d,0x43,0x45,0x47,0x4b,0x6b]
+rooms = [0x05,0x0d,0x0f,0x11,0x13,0x17,0x23,0x25,0x29,0x31,0x3b,0x3d,0x43,0x45,0x47,0x6b]
 light = [0x11,0x13,0x23,0x31,0x43,0x45,0x47]
 
 for i in range(0,length(rooms)-1) {
@@ -59,6 +59,7 @@ counter = time()*60+time(4)
 comp = sum(visited)+sum(cleared)
 clen = length(visited)+length(cleared)
 clear = trigger_when(prev(sum(cleared)) < length(cleared) && sum(cleared) == length(cleared))
+hp = prev(health) > health && health < 100
 
 achievement(
     title = "Paid Training", points = 3,
@@ -69,7 +70,7 @@ achievement(
 achievement(
     title = "Training Can Hurt", points = 1,
     description = "Find a way to get hurt in the training room",
-    trigger = menu != 0x01 && map == 0x03 && prev(health) == 100 && health < 100
+    trigger = menu != 0x01 && map == 0x03 && hp
 )
 
 achievement(
@@ -85,7 +86,7 @@ achievement(
 )
 
 achievement(
-    title = "E3 Mansion Cleared!", points = 5,
+    title = "E3 Mansion Cleared!", points = 5, type = "Win_condition",
     description = "Visit and clear every possible room",
     trigger = map == 0x02 && prev(comp) < clen && comp == clen
 )
@@ -99,7 +100,7 @@ achievement(
 achievement(
     title = "E3 Mansion Master", points = 10,
     description = "Clear every possible room without taking damage in any room",
-    trigger =  never(menu == 0x01 || map != 0x02 || prev(health) == 100 && health < 100)
+    trigger =  never(menu == 0x01 || map != 0x02 || hp)
             && once(prev(map) != 0x02 && map == 0x02) && clear
 )
 
@@ -114,7 +115,9 @@ leaderboard(
 
 rich_presence_conditional_display(menu == 1, "Starting the E3 beta")
 rich_presence_conditional_display(map == 3, "Luigi is catching fake ghosts in the training room")
-rich_presence_display("Luigi is exploring the E3 mansion in the {0} ❤ {1}% / 💰 {2} / 🕒 {3}am",
+rich_presence_display("Luigi is exploring the E3 mansion in the {0} ❤ {1}% / 💰 {2} / 🕒 {3}am
+//original RP by dericobanjo
+//fixes and cleanup by Darky",
     rich_presence_lookup("Room", room, roomlookup,"void of the mansion"),
     rich_presence_value("Value", health, "VALUE"), rich_presence_value("Value", coins, "VALUE"),
     rich_presence_value("SECS", counter, "SECS"))

@@ -1,4 +1,4 @@
-// Mario Kart Wii - multi-region support
+// Mario Kart Wii
 // #ID = 11071
 
 function baseChain(first,offsets,lastType) {
@@ -16,10 +16,12 @@ function baseChain(first,offsets,lastType) {
 }
 function license(region) => baseChain(ptrStats[region],[0x37],byte)
 function stats(region,offset,lastType) => baseChain(ptrStats[region],[offset+license(region)],lastType)
+function mainMenu(region) => baseChain(ptrMenu[region],[0x00,0x00],dword_be)
 
 titles = {
     "Trophy": "",
     "Stars": "",
+    "Unlocks": ["Bikes Unlocked!","Karts Delocked!","Mirror Mode Mirrored!"],
 }
 ptrRaceData = {
     "EU": 0x009bd728,
@@ -38,6 +40,12 @@ ptrStats = {
     "US": 0x009b8f88,
     "JP": 0x009bc7a8,
     "KO": 0x009abd88,
+}
+ptrMenu = {
+    "EU": 0x009c1e38,
+    "US": 0x009bd508,
+    "JP": 0x009c0e98,
+    "KO": 0x009b0478,
 }
 
 regions = ["EU","US","JP","KO"]
@@ -100,22 +108,34 @@ staff = [[0x00,["==Kony",0x1c,[1,39,469]],["fuyu",0x10,[1,33,702]]],
          [0x09,["Matt",0x23,[2,51,662]],["Syun1",0x08,[2,37,782]]],
          [0x15,["Fukuda",0x02,[2,52,926]],["A24",0x17,[2,39,391]]],
          [0x0e,["Kato",0x09,[1,41,44]],["Matt",0x1e,[1,32,867]]]]
+unlocks = [[0x05,0x0d,0x04,0x0c,0x12,0x14,0x0f,
+            0x11,0x15,0x13,0x16,0x17,0x18,0x18],
+           [0x09,0x0c,0x0f,0x0a,0x0d,0x10,0x0b,0x0e,0x11,
+            0x1b,0x1e,0x21,0x1c,0x1f,0x22,0x1d,0x20,0x23]]
+
 for i in range(0,3) {
     for j in range(0,7) {
         off = 0x70*j
         off2 = 0x380*i
         cup = [[],[]]
+        cu = [[],[]]
         for r in regions {
             st = stats(r,0xae+off+off2,byte)
-            cr = stats(r,0xbf+off+off2,byte)
-            sr = stats(r,0xb8+off+off2,byte)
+            cr = stats(r,0xbf+off+off2,dword_be)
+            sr = stats(r,0xb8+off+off2,dword_be)
             for l in range (0,1) {
                 lg = [cr,sr]
-                logic = __ornext(prev(st) == 0 || prev(lg[l]) > 0) && st == 1 && lg[l] == 0
-                if (l == 0) array_push(cup[l],logic)
+                array_push(cup[l],mainMenu(r) == 0x35 && __ornext(prev(st) == 0 || prev(lg[l]) > 0)
+                               && st == 1 && lg[l] == 0)
             }
+            cb = 6+i+(j/4)*8+(j%2)*4
+            bit = bit(cb%8,(dword_be(ptrStats[r]) & 0x1fffffff)+0x9036-cb/8)
+            md = bit(6+i,(dword_be(ptrStats[r]) & 0x1fffffff)+0x9034)
+            mm = bit(4,(dword_be(ptrStats[r]) & 0x1fffffff)+0x9039)
+            array_push(cu[0],mainMenu(r) == 0x93 && prev(bit) == 0 && bit == 1)
+            if (i < 2) array_push(cu[1],mainMenu(r) == 0x91 && prev(md) == 0 && md == 1)
+            else if (i == 2) array_push(cu[1],mainMenu(r) == 0x93 && prev(mm) == 0 && mm == 1)
         }
-
         if (i < 3) spd = format("{0}ccm",ccm[i])
         else spd = ccm[i]
         for l in range(0,1) {
@@ -126,6 +146,45 @@ for i in range(0,3) {
                 trigger = any_of(cup[l],y=>y)
             )
         }
+        if (j%4 > 1)
+        achievement(
+            title = format("Unlock {0} Cup - {1}",cups[j],spd), points = 1,
+            description = format("Unlock the {0} Cup on {1}",cups[j],spd),
+            trigger = any_of(cu[0],y=>y)
+        )
+        if (i < 3 && j == 7) {
+            veh = ["Bikes","Karts"]
+            if (i < 2) vhs = format("the ability to use {0} in {1}",veh[i],spd)
+            else vhs = "Mirror Mode"
+            achievement(
+                title = titles["Unlocks"][i], points = 1,
+                description = format("Unlock {0}",vhs),
+                trigger = any_of(cu[1],y=>y)
+            )
+        }
+    }
+}
+
+for i in range(0,1) {
+    for j in range(0,length(unlocks[i])-1) {
+        lg = []
+        un = [character,vehicle]
+        mii = ["A","B"]
+        cur = unlocks[i][j]
+        for r in regions {
+            if (cur == 0x18) v = 2
+            else v = 0
+            cb = i*2+j
+            bit = bit(cb%8,(dword_be(ptrStats[r]) & 0x1fffffff)+0x9037+i*4-cb/8)
+            array_push(lg,mainMenu(r) == 0x90+i+v && prev(bit) == 0 && bit == 1)
+        }
+        if (i < 1 && j > 11) und = format("{0} {1}",un[i][cur],mii[j%12])
+        else und = format("{0}",un[i][cur])
+        achievement(
+            title = format("Unlock {0}",und), points = 1,
+            description = format("Unlock {0}",und),
+            trigger = any_of(lg,y=>y)
+        )
     }
 }
 
