@@ -19,6 +19,7 @@ story = word(0x042d2c)
 music = word(0x0016a0)
 lives = byte(0x028fe2)
 candy = bit1(0x028f48)
+invin = bit2(0x028f3c)
 phone = byte(0x028fbc)
 hearts = byte(0x040980)
 func = word(0x028fc2)
@@ -224,7 +225,7 @@ achievement(
 achievement(
     title = "Jumbo Sweets", points = 1,
     description = "Get Invincibility Candy.",
-    trigger = igCheck && prev(candy) == 1 && candy == 0
+    trigger = igCheck && prev(invin) == 0 && prev(candy) == 1 && invin == 1 && candy == 0
 )
 
 comp = story/9999 + sum_of(bitflags,y=>y)

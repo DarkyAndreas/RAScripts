@@ -144,6 +144,7 @@ for i in range(0,length(boss)-1) {
             logic[1] = abilityID != 0x08
             bossID = stage != 0x0e
             array_push(des, "with the Hammer ability and without taking damage")
+            tp = ""
         }
         
     }
@@ -164,7 +165,7 @@ for i in range(0,length(boss)-1) {
         }
     }
     for j in range(0,l)
-    achievement(
+achievement(
         title = titles["bossChallenge"][i+j+i/7], points = 10+j*15+(i/7)*15, type = tp,
         description = format("Defeat {0} {1}",bossDes,des[j]),
         trigger =  never(bossID || health == 0xff || logic[j])
