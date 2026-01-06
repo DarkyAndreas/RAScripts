@@ -54,6 +54,7 @@ map = dword_be(0x004d80c8)
 health = baseChain(0x003d8b40,[0xb8],word_be)
 room = stats(0x35c)
 coins = stats(0x324)
+statPTR = dword_be(0x003d8b7c)
 frames = time(-4)
 counter = time()*60+time(4)
 comp = sum(visited)+sum(cleared)
@@ -82,7 +83,7 @@ achievement(
 achievement(
     title = "E3 Coin Collector", points = 10,
     description = "Collect 300 coins",
-    trigger = map == 0x02 && prev(coins) < 300 && coins >= 300
+    trigger = map == 0x02 && statPTR != 0 && prev(coins) < 300 && coins >= 300
 )
 
 achievement(

@@ -17,6 +17,8 @@ function baseChain(first,offsets,lastType) {
 function license(region) => baseChain(ptrStats[region],[0x37],byte)
 function stats(region,offset,lastType) => baseChain(ptrStats[region],[offset+license(region)],lastType)
 function mainMenu(region) => baseChain(ptrMenu[region],[0x00,0x00],dword_be)
+function raceData(region,off) => baseChain(ptrRaceData[region],off,dword_be)
+function musicID(region) => baseChain(ptrMusic[region],[0x38,0x3C,0xbc],dword_be)
 
 titles = {
     "Trophy": "",
@@ -47,6 +49,12 @@ ptrMenu = {
     "JP": 0x009c0e98,
     "KO": 0x009b0478,
 }
+ptrMusic = {
+    "EU": 0x009c2318,
+    "US": 0x009bdb58,
+    "JP": 0x009c1378,
+    "KO": 0x009b0958,
+}
 
 regions = ["EU","US","JP","KO"]
 cups = ["Mushroom","Flower","Star","Special","Shell","Banana","Leaf","Lightning"]
@@ -58,7 +66,7 @@ vehicle = ["Standard Kart S","Standard Kart M","Standard Kart L",
            "Blue Falcon","B Dasher Mk 2","Dragonetti","Standard Bike S",
            "Standard Bike M","Standard Bike L","Bullet Bike","Mach Bike",
            "Bowser Bike","Nanobike","Bon Bon","Wario Bike","Quacker",
-           "Rapide","Twinkle Star","Magikruiser","Ntriocycle","Torpedo",
+           "Rapide","Twinkle Star","Magikruiser","Nitriocycle","Torpedo",
            "Bubble Bike","Dolphin Dasher","Phantom"]
 character = ["Mario","Baby Peach","Waluigi","Bowser","Baby Daisy",
              "Dry Bones","Baby Mario","Luigi","Toad","Donkey Kong",
@@ -138,7 +146,7 @@ for i in range(0,3) {
         }
         if (i < 3) spd = format("{0}ccm",ccm[i])
         else spd = ccm[i]
-        for l in range(0,1) {
+        for l in range(1,1) {
             des = [["Gold Trophy","the golden trophy"],["3 Stars","a 3 star ranking"]]
             achievement(
                 title = format("{0} Cup - {1} - {2}",cups[j],spd,des[l][0]), points = 1,
@@ -148,7 +156,7 @@ for i in range(0,3) {
         }
         if (j%4 > 1)
         achievement(
-            title = format("Unlock {0} Cup - {1}",cups[j],spd), points = 1,
+            title = format("Unlock {0} Cup - {1}",cups[j],spd), points = 1, type = "progression",
             description = format("Unlock the {0} Cup on {1}",cups[j],spd),
             trigger = any_of(cu[0],y=>y)
         )
@@ -192,7 +200,6 @@ for i in range(0,length(staff)-1) {
     function gs(tp) {
         Array = []
         for r in regions {
-            function rd(off) => baseChain(ptrRaceData[r],off,dword_be)
             cur = staff[i][1+tp]
             tm = [[],[]]
             st = baseChain(ptrRaceInfo[r],[0x28],dword_be)
@@ -201,9 +208,9 @@ for i in range(0,length(staff)-1) {
                 array_push(tm[0],baseChain(ptrRaceInfo[r],[0x0c,0x00,0x91+off[j][0]],off[j][2])*off[j][1])
                 array_push(tm[1],cur[2][j]*off[j][1])
             }
-            array_push(Array,rd([0xB70]) == 0x02 && rd([0xB68]) == i && rd([0x30]) == cur[1]
-                    && rd([0x34]) == staff[i][0] && sum_of(tm[0],y=>y) <= sum_of(tm[1],y=>y)
-                    && prev(st) != 0x04 && st == 0x04)
+            array_push(Array,raceData(r,[0xB70]) == 0x02 && raceData(r,[0xB68]) == i
+                    && raceData(r,[0x30]) == cur[1] && raceData(r,[0x34]) == staff[i][0]
+                    && sum_of(tm[0],y=>y) <= sum_of(tm[1],y=>y) && prev(st) != 0x04 && st == 0x04)
         }
         return Array
     }
@@ -228,4 +235,17 @@ for i in range(0,length(staff)-1) {
             trigger = any_of(gs(j),y=>y)
         )
     }
+}
+
+for i in range(0,1) {
+    lg = []
+    for r in regions {
+        array_push(lg,never(prev(license(r)) != license(r)) && tally_of([0,1,2,3,4,5],5,y=>once(__ornext(any_of([0,1],y=>musicID(r) == 0x6b+y)) && mainMenu(r) == 0x28 && raceData(r,[0xB68]) == 0x20+y+i*5)))
+    }
+    btl = ["Wii","Retro"]
+    achievement(
+            title = format("Win - {0}",btl[i]), points = 1,
+            description = format("Win on every {0} Battle map",btl[i]),
+            trigger = any_of(lg,y=>y)
+    )
 }

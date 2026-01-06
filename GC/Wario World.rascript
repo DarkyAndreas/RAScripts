@@ -148,9 +148,11 @@ sfxP = dword_be(0x001fdcc8)
 sfxA = byte(0x001fdcd8)
 bBtn = bit1(0x001fce00)
 rBtn = bit5(0x001fce01)
+gameBits = dword_be(0x001fd930)
 hpBoss = baseChain(0x001ce6d0,[0x14,0x10],word_be,["prev"])
 piledrive = baseChain(0x001c5820,[0x74,0x10],float_be)
 byebye = baseChain(0x001c5820,[0x128],dword_be)
+anim = baseChain(0x001c5820,[0x378],dword_be)
 crates =  baseChain(0x001fd910,[0x18,0x20,0x227],byte)
 
 v=0
@@ -245,6 +247,7 @@ for i in range(0,3) {
         if (any_of([2,5],y=>o==y) || l == 0) {    
             df = "defeat"
             ex = prev(hpChar) > hpChar
+            tr = prev(hpBoss) > 0 && hpBoss == 0
             if (l == 1) {
                 function button(btn) => pause == 0 && ctsn == 0 && any_of(btn,y=>prev(y) < y)
                 ttl = titles["boss"][12+o/5]
@@ -253,6 +256,7 @@ for i in range(0,3) {
                     df = "damage"
                     bp = "or R button"
                     ex = button([bBtn,rBtn])
+                    tr = prev(hpBoss) == 10 && prev(hpBoss) > hpBoss
                 }
                 else {
                     bp = "button or dying"
@@ -270,7 +274,7 @@ for i in range(0,3) {
                 description = des,
                 trigger =  never(world != i || level != j || sublv != s || ex)
                         && once(prev(sublv) == 0x05 && sublv == s)
-                        && trigger_when(prev(hpBoss) > 0 && hpBoss == 0)
+                        && trigger_when(tr)
             )
         }
         if (j < 2) {
@@ -288,7 +292,7 @@ for i in range(0,3) {
             description = d,
             start =  world == i && level == j && sublv == 0
                   && respawn == 0 && time == 1 && ctsn != 0,
-            cancel = sublv == 0 && prev(byebye) == 0 && byebye == 1 || menu == 0x25,
+            cancel = sublv == 0 && anim == 0x0a && prev(byebye) == 0 && byebye == 1 || menu == 0x25,
             submit = world == i && level == j && menu == m,
             value = measured(tally(0,pause == 0 && ctsn == 0)), format="Frames", lower_is_better=true
         )
@@ -337,7 +341,11 @@ for i in range(0,1) {
         val = [[500,1000,2000],[75,150,250]]
         c = val[i][j]
         if (c < 100) d = format("{0}",c)
-        else d = format("{0},00",c/100,c%100)
+        else {
+            if(c%100 == 0) z = "0"
+            else z = ""
+            d = format("{0},{1}{2}",c/100,c%100,z)
+        }
         v = coll(i)
         v2 = c*10
         achievement(
@@ -378,5 +386,5 @@ for i in range(0,1) {
 achievement(
     title = "Sorry...", points = 2,
     description = "Fine, I'll stop singing the song of my people. I'll run out of breath if you keep it paused for this long!",
-    trigger = pause == 1 && prev(sfxP != 0 && sfxA == 0) && sfxP == 0 && sfxA == 1
+    trigger = prev(gameBits) == 0x0f && prev(sfxP != 0 && sfxA == 0) && gameBits == 0x0f && sfxP == 0 && sfxA == 1
 )
