@@ -382,7 +382,7 @@ for i in range(0,length(trackOrder)-1) {
             cs = [2,1,1,3,3,1,2,3,1,3,3,2,1,2,3,1,2,1,3,1,2,1,1,2,2,3,3,1]
             leaderboard(
                 title = format("{0} - {1}",tracks[cr[0]][cr[1]],modes[1][cs[val]]),
-                description = format("Fastet time on a {1} race of {0} in challenge mode",tracks[cr[0]][cr[1]],lbs[cs[val]-1]),
+                description = format("Fastest time on a {1} race of {0} in challenge mode",tracks[cr[0]][cr[1]],lbs[cs[val]-1]),
                 start  =  raceID == val && mode != 0 && mode != 5
                        && menuCall(1,menu(0,4) != 7 && carData(0x14) == 2 && racePosition() == 1,
                           menu(US,4) != 7 && carData(0x14,US) == 2 && racePosition(US) == 1),
@@ -400,7 +400,7 @@ for i in range(0,length(trackOrder)-1) {
                 lbs = [["Lap","single lap",lapComb()],["Race","full race",raceComb()]]
                 leaderboard(
                     title = format("{0} - {1} Time - {2}",tracks[cr[0]][cr[1]],lbs[l][0],modes[1][md-md/5]),
-                    description = format("Fastet {1} time on a {2} race of {0} in story mode",tracks[cr[0]][cr[1]],lbs[l][1],dc[md/5]),
+                    description = format("Fastest {1} time on a {2} race of {0} in story mode",tracks[cr[0]][cr[1]],lbs[l][1],dc[md/5]),
                     start  =  raceID == i && mode == md
                            && menuCall(1,menu(0,4) != 7 && carData(0x14) == 2 && racePosition() == 1,
                               menu(US,4) != 7 && carData(0x14,US) == 2 && racePosition(US) == 1),

@@ -86,6 +86,7 @@ trades = [[0x1e],[0x37],[0x43],[0x62],[0x63],[0x64],[0x65],
           [0x66],[0x70],[0x91,5],[0x9e,10],[0x9f],[0xa0,10],
           [0xad,10],[0xc8,10],[0xce,10]]
 
+save = byte(0x00a100)
 time = byte(0x00cac4)
 card = byte(0x00cc2b)
 song = byte(0x00dd80)
@@ -102,7 +103,7 @@ for i in range(0,1) {
     achievement(
         title = format("Card {0}",crd[i][0]), points = 5+20*i, type = crd[i][2],
         description = format("Collect {0} obtainable cards in the game",crd[i][1]),
-        trigger =  measured_if(time == 1) && sum_of(cards(),y=>~prev(y)) > length(cards()) - val
+        trigger =  measured_if(prev(save) == save) && time == 1 && sum_of(cards(),y=>~prev(y)) > length(cards()) - val
                 && measured(sum_of(cards(),y=>~y) >= val)
     )
 }
@@ -169,7 +170,7 @@ achievement(
 achievement(
     title = "Aaron Aced", points = 10,
     description = "Defeat all of Tech Aaron's decks at Dr. Mason's Laboratory in a single session",
-    trigger =  never(time == 0) && tally_of([0x09,0x0a,0x0b],3,y=>btle == 1 && enem == y && prev(song) != 0x98 && song == 0x98)
+    trigger =  never(time == 0) && tally_of([0x09,0x0a,0x0b],3,y=>once(btle == 1 && enem == y && prev(song) != 0x98 && song == 0x98))
             
 )
 
@@ -206,7 +207,7 @@ rich_presence_value("Frames",time(0)+time(1)*60+time(2)*3600+time(3)*216000,"FRA
 rich_presence_conditional_display(ingame == 0x0e, "Currently exploring the {3} | {0}/226 Cards | {1}/8 Master Medals | {2}",
 rich_presence_value("Value",sum_of(cards(),y=>~y),"VALUE"),rich_presence_value("Value",bitcount(0x00d3d2),"VALUE"),
 rich_presence_value("Frames",time(0)+time(1)*60+time(2)*3600+time(3)*216000,"FRAMES"),rich_presence_lookup("Room",room,lookupRooms))
-rich_presence_conditional_display(btle == 1, "Currently battling against {4} the {3} | {0}/226 Cards | {1}/8 Master Medals | {2}",
+rich_presence_conditional_display(btle == 1, "Currently battling against {4} in {3} | {0}/226 Cards | {1}/8 Master Medals | {2}",
 rich_presence_value("Value",sum_of(cards(),y=>~y),"VALUE"),rich_presence_value("Value",bitcount(0x00d3d2),"VALUE"),
 rich_presence_value("Frames",time(0)+time(1)*60+time(2)*3600+time(3)*216000,"FRAMES"),rich_presence_lookup("Room",room,lookupRooms),
 rich_presence_lookup("Trainer",enem,lookupTrainers))
