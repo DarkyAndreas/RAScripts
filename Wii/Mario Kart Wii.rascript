@@ -257,6 +257,11 @@ menus = {
     0x16: "Seeing the ESRB Warning",
     0x17: "Being told to use 60Hz instead of 50Hz",
     0x18: "Being told to use 60Hz instead of 50Hz",
+    0x2e: "Watching a Grand Prix Replay",
+    0x2f: "Watching a Time Trial Replay",
+    0x32: "Watching a Time Trial Replay",
+    0x33: "Watching a Time Trial Replay",
+    0x34: "Watching a Time Trial Replay",
     0x35: "Watching the Grand Prix Award Ceremony",
     0x36: "Watching the VS Award Ceremony",
     0x37: "Watching the Team-VS Award Ceremony",
@@ -272,6 +277,7 @@ menus = {
     0x41: "Currently chilling in the Main Menu",
     0x42: "Currently chilling in the Main Menu",
     0x43: "Currently chilling in the Main Menu",
+    0x44: "Watching a Demo",
     0x45: "Currently selecting a Mii",
     0x46: "Currently selecting a Mii",
     0x47: "Currently checking their License Settings",
@@ -453,14 +459,14 @@ for i in range(0,3) {
         }
         if (j%4 > 1)
         achievement(
-            title = titles["Cups"][i][j%2+j/4], points = 3, type = "progression",
+            title = titles["Cups"][i][j/3+j/7], points = 3, type = "progression",
             description = format("Unlock the {0} Cup on {1}",cup[j],cc[i]),
             trigger = any_of(cu[0],y=>y)
         )
         if (i < 3 && j == 7) {
             veh = ["bikes","karts"]
             if (i < 2) vhs = format("the ability to use {0} in {1}",veh[i],cc[i])
-            else vhs = "Mirror Mode"
+            else vhs = "Mirror mode"
             achievement(
                 title = titles["Unlocks"][i], points = 3,
                 description = format("Unlock {0}",vhs),
@@ -584,7 +590,7 @@ for i in range(0,1) {
     )
     achievement(
         title = titles["Extra"][i+2], points = 2,
-        description = format("Win a {0} match of 5 points against hard CPUs with aggressive items enabled",battle[i]),
+        description = format("Win a {0} match of 5 points or more against hard CPUs with aggressive items enabled",battle[i]),
         trigger = any_of(lg[1],y=>y)
     )
     achievement(
@@ -667,7 +673,7 @@ for i in range(0,8) {
                    && getRaceInfo(r,[0x28]) == 2 && logic[i])
     }
     achievement(
-        title = titles["Items"][i], points = 5-5*i/8,
+        title = titles["Items"][i], points = 5-4*(i/8),
         description = descriptions[i],
         trigger = any_of(log,y=>y)
     )
@@ -952,7 +958,7 @@ for i in range(0,31) {
             prev(all_of([0,1],y=>getPlayerGraphicsData(r,[0x00,0x7B4+y]) == 0x64))
             && __ornext(any_of([0,1],y=>getPlayerGraphicsData(r,[0x00,0x7B4+y]) == 0x00))]]
 
-        cheevo = [["without toucing any boost pads while using the upper path at the end of every lap",[0x10,0x07],lc],
+        cheevo = [["without touching any boost pads while using the upper path at the end of every lap",[0x10,0x07],lc],
                   ["without touching any patches of grass and mole ridges",[0x00,0x04],mmm],
                   ["while touching every bouncy mushroom without falling down",[0x18,0x0d],mg],
                   ["without touching the conveyors for a total of two seconds",[0x1b,0x08],tf],
@@ -980,7 +986,7 @@ for i in range(0,31) {
                   ["while driving under each thwomp on every lap without getting crushed",[0x11,0x15],rBC3],
                   ["while staying on the bottom half until the bridge on the last lap",[0x0b,0x09],rDKJP],
                   ["without getting hit by enemies on the road",[0x0c,0x0c],rMC],
-                  ["and without running into any other character",[0x15,0x06],rMC3],
+                  ["without running into any other character",[0x15,0x06],rMC3],
                   ["while always taking the longest route when lead by an arrow",[0x0f,0x01],rPG],
                   ["without touching any patches of grass nor being airborne for longer than a second at once",[0x1a,0x16],rDKM],
                   ["without ever losing a position nor hitting walls or objects",[0x07,0x14],rBC]]
@@ -1335,14 +1341,14 @@ rich_presence_conditional_display(rpMenu([0x1b,0x28],4),"In a {16} match on {2} 
     rpTypes(24),rpTypes(25),rpTypes(26),rpTypes(27),rpTypes(28),rpTypes(29),
     rpTypes(30),rpTypes(31),rpTypes(32))
 
-rich_presence_conditional_display(rpMenu([0x1c,0x1d]),"Competing against a boss on {2} using {4}{5}"
+/*rich_presence_conditional_display(rpMenu([0x1c,0x1d]),"Competing against a boss on {2} using {4}{5}"
     + " on {6}",
     rpTypes(0),rpTypes(1),rpTypes(2),rpTypes(3),rpTypes(4),rpTypes(5),
     rpTypes(6),rpTypes(7),rpTypes(8),rpTypes(9),rpTypes(10),rpTypes(11),
     rpTypes(12),rpTypes(13),rpTypes(14),rpTypes(15),rpTypes(16),rpTypes(17),
     rpTypes(18),rpTypes(19),rpTypes(20),rpTypes(21),rpTypes(22),rpTypes(23),
     rpTypes(24),rpTypes(25),rpTypes(26),rpTypes(27),rpTypes(28),rpTypes(29),
-    rpTypes(30),rpTypes(31),rpTypes(32))
+    rpTypes(30),rpTypes(31),rpTypes(32))*/
 
 rich_presence_conditional_display(rpMenu([0x1f,0x30,0x31]),"Racing for the best time on {2} using {4}{5}"
     + " on {6} | Time: {28}",
@@ -1362,7 +1368,7 @@ rich_presence_conditional_display(rpMenu([0x1f,0x30,0x31]),"Racing for the best 
     rpTypes(24),rpTypes(25),rpTypes(26),rpTypes(27),rpTypes(28),rpTypes(29),
     rpTypes(30),rpTypes(31),rpTypes(32))*/
 
-rich_presence_conditional_display(rpMenu([0x2d]),"In a Tournament on {2} using {4}{5}"
+rich_presence_conditional_display(rpMenu([0x1c,0x1d,0x2d]),"In a Tournament on {2} using {4}{5}"
     + " on {6} | Time: {28}",
     rpTypes(0),rpTypes(1),rpTypes(2),rpTypes(3),rpTypes(4),rpTypes(5),
     rpTypes(6),rpTypes(7),rpTypes(8),rpTypes(9),rpTypes(10),rpTypes(11),
@@ -1371,31 +1377,31 @@ rich_presence_conditional_display(rpMenu([0x2d]),"In a Tournament on {2} using {
     rpTypes(24),rpTypes(25),rpTypes(26),rpTypes(27),rpTypes(28),rpTypes(29),
     rpTypes(30),rpTypes(31),rpTypes(32))
 
-rich_presence_conditional_display(rpMenu([0x2e]),"Watching a {0} Grand Prix Replay on {2} using {5}"
+/*rich_presence_conditional_display(rpMenu([0x2e]),"Watching a {0} Grand Prix Replay on {2} using {5}"
     + " on {6} | {3} Cup",
     rpTypes(0),rpTypes(1),rpTypes(2),rpTypes(3),rpTypes(4),rpTypes(5),
     rpTypes(6),rpTypes(7),rpTypes(8),rpTypes(9),rpTypes(10),rpTypes(11),
     rpTypes(12),rpTypes(13),rpTypes(14),rpTypes(15),rpTypes(16),rpTypes(17),
     rpTypes(18),rpTypes(19),rpTypes(20),rpTypes(21),rpTypes(22),rpTypes(23),
     rpTypes(24),rpTypes(25),rpTypes(26),rpTypes(27),rpTypes(28),rpTypes(29),
-    rpTypes(30),rpTypes(31),rpTypes(32))
+    rpTypes(30),rpTypes(31),rpTypes(32))*/
 
-rich_presence_conditional_display(rpMenu([0x2f,0x32,0x33,0x34]),"Watching a Time Trial Replay on {2}"
+/*rich_presence_conditional_display(rpMenu([0x2f,0x32,0x33,0x34]),"Watching a Time Trial Replay on {2}"
     + " using {4}{5} on {6}",
     rpTypes(0),rpTypes(1),rpTypes(2),rpTypes(3),rpTypes(4),rpTypes(5),
     rpTypes(6),rpTypes(7),rpTypes(8),rpTypes(9),rpTypes(10),rpTypes(11),
     rpTypes(12),rpTypes(13),rpTypes(14),rpTypes(15),rpTypes(16),rpTypes(17),
     rpTypes(18),rpTypes(19),rpTypes(20),rpTypes(21),rpTypes(22),rpTypes(23),
     rpTypes(24),rpTypes(25),rpTypes(26),rpTypes(27),rpTypes(28),rpTypes(29),
-    rpTypes(30),rpTypes(31),rpTypes(32))
+    rpTypes(30),rpTypes(31),rpTypes(32))*/
 
-rich_presence_conditional_display(rpMenu([0x44]),"Watching a Demo on {2}",
+/*rich_presence_conditional_display(rpMenu([0x44]),"Watching a Demo on {2}",
     rpTypes(0),rpTypes(1),rpTypes(2),rpTypes(3),rpTypes(4),rpTypes(5),
     rpTypes(6),rpTypes(7),rpTypes(8),rpTypes(9),rpTypes(10),rpTypes(11),
     rpTypes(12),rpTypes(13),rpTypes(14),rpTypes(15),rpTypes(16),rpTypes(17),
     rpTypes(18),rpTypes(19),rpTypes(20),rpTypes(21),rpTypes(22),rpTypes(23),
     rpTypes(24),rpTypes(25),rpTypes(26),rpTypes(27),rpTypes(28),rpTypes(29),
-    rpTypes(30),rpTypes(31),rpTypes(32))
+    rpTypes(30),rpTypes(31),rpTypes(32))*/
 
 /*rich_presence_conditional_display(rpMenu([0x54]),"Preparing for multiplayer fun with {29} more"
     + " player{17}",
@@ -1416,7 +1422,7 @@ rich_presence_conditional_display(rpMenu([0x55,0x56,0x57]),"Connected to the Wi-
     rpTypes(30),rpTypes(31),rpTypes(32))
 
 rich_presence_conditional_display(rpMenu([0x58]),"Voting on the next track to get picked"
-    + " | Global | {5} on {6} | {30}VR",
+    + " | Global | {30}VR",
     rpTypes(0),rpTypes(1),rpTypes(2),rpTypes(3),rpTypes(4),rpTypes(5),
     rpTypes(6),rpTypes(7),rpTypes(8),rpTypes(9),rpTypes(10),rpTypes(11),
     rpTypes(12),rpTypes(13),rpTypes(14),rpTypes(15),rpTypes(16),rpTypes(17),
@@ -1424,14 +1430,14 @@ rich_presence_conditional_display(rpMenu([0x58]),"Voting on the next track to ge
     rpTypes(24),rpTypes(25),rpTypes(26),rpTypes(27),rpTypes(28),rpTypes(29),
     rpTypes(30),rpTypes(31),rpTypes(32))
 
-rich_presence_conditional_display(rpMenu([0x59]),"Voting on the next battle map to get picked"
-    + " | Global | {5} on {6} | {31}BR",
+/*rich_presence_conditional_display(rpMenu([0x59]),"Voting on the next battle map to get picked"
+    + " | Global | {31}BR",
     rpTypes(0),rpTypes(1),rpTypes(2),rpTypes(3),rpTypes(4),rpTypes(5),
     rpTypes(6),rpTypes(7),rpTypes(8),rpTypes(9),rpTypes(10),rpTypes(11),
     rpTypes(12),rpTypes(13),rpTypes(14),rpTypes(15),rpTypes(16),rpTypes(17),
     rpTypes(18),rpTypes(19),rpTypes(20),rpTypes(21),rpTypes(22),rpTypes(23),
     rpTypes(24),rpTypes(25),rpTypes(26),rpTypes(27),rpTypes(28),rpTypes(29),
-    rpTypes(30),rpTypes(31),rpTypes(32))
+    rpTypes(30),rpTypes(31),rpTypes(32))*/
 
 rich_presence_conditional_display(rpMenu([0x5b,0x5c,0x5d]),"Connected to the Wi-Fi services"
     + " with a second player and preparing to compete against players from all over the world"
@@ -1444,7 +1450,7 @@ rich_presence_conditional_display(rpMenu([0x5b,0x5c,0x5d]),"Connected to the Wi-
     rpTypes(30),rpTypes(31),rpTypes(32))
 
 rich_presence_conditional_display(rpMenu([0x5e]),"Voting on the next track to get picked"
-    + " | Global | {5} on {6} | {8} on {9} | {30}VR",
+    + " | Global | {30}VR",
     rpTypes(0),rpTypes(1),rpTypes(2),rpTypes(3),rpTypes(4),rpTypes(5),
     rpTypes(6),rpTypes(7),rpTypes(8),rpTypes(9),rpTypes(10),rpTypes(11),
     rpTypes(12),rpTypes(13),rpTypes(14),rpTypes(15),rpTypes(16),rpTypes(17),
@@ -1453,7 +1459,7 @@ rich_presence_conditional_display(rpMenu([0x5e]),"Voting on the next track to ge
     rpTypes(30),rpTypes(31),rpTypes(32))
 
 rich_presence_conditional_display(rpMenu([0x5e]),"Voting on the next battle map to get picked"
-    + " | Global | {5} on {6} | {8} on {9} | {31}BR",
+    + " | Global | {31}BR",
     rpTypes(0),rpTypes(1),rpTypes(2),rpTypes(3),rpTypes(4),rpTypes(5),
     rpTypes(6),rpTypes(7),rpTypes(8),rpTypes(9),rpTypes(10),rpTypes(11),
     rpTypes(12),rpTypes(13),rpTypes(14),rpTypes(15),rpTypes(16),rpTypes(17),
@@ -1462,7 +1468,7 @@ rich_presence_conditional_display(rpMenu([0x5e]),"Voting on the next battle map 
     rpTypes(30),rpTypes(31),rpTypes(32))
 
 rich_presence_conditional_display(rpMenu([0x60,0x61]),"Voting on the next track to get picked"
-    + " | Friend Room | {5} on {6}",
+    + " | Friend Room",
     rpTypes(0),rpTypes(1),rpTypes(2),rpTypes(3),rpTypes(4),rpTypes(5),
     rpTypes(6),rpTypes(7),rpTypes(8),rpTypes(9),rpTypes(10),rpTypes(11),
     rpTypes(12),rpTypes(13),rpTypes(14),rpTypes(15),rpTypes(16),rpTypes(17),
@@ -1471,7 +1477,7 @@ rich_presence_conditional_display(rpMenu([0x60,0x61]),"Voting on the next track 
     rpTypes(30),rpTypes(31),rpTypes(32))
 
 rich_presence_conditional_display(rpMenu([0x62,0x63]),"Voting on the next battle map to get picked"
-    + " | Friend Room | {5} on {6}",
+    + " | Friend Room",
     rpTypes(0),rpTypes(1),rpTypes(2),rpTypes(3),rpTypes(4),rpTypes(5),
     rpTypes(6),rpTypes(7),rpTypes(8),rpTypes(9),rpTypes(10),rpTypes(11),
     rpTypes(12),rpTypes(13),rpTypes(14),rpTypes(15),rpTypes(16),rpTypes(17),
@@ -1480,7 +1486,7 @@ rich_presence_conditional_display(rpMenu([0x62,0x63]),"Voting on the next battle
     rpTypes(30),rpTypes(31),rpTypes(32))
 
 rich_presence_conditional_display(rpMenu([0x64,0x65]),"Voting on the next track to get picked"
-    + " | Friend Room | {5} on {6} | {8} on {9}",
+    + " | Friend Room",
     rpTypes(0),rpTypes(1),rpTypes(2),rpTypes(3),rpTypes(4),rpTypes(5),
     rpTypes(6),rpTypes(7),rpTypes(8),rpTypes(9),rpTypes(10),rpTypes(11),
     rpTypes(12),rpTypes(13),rpTypes(14),rpTypes(15),rpTypes(16),rpTypes(17),
@@ -1489,7 +1495,7 @@ rich_presence_conditional_display(rpMenu([0x64,0x65]),"Voting on the next track 
     rpTypes(30),rpTypes(31),rpTypes(32))
 
 rich_presence_conditional_display(rpMenu([0x66,0x67]),"Voting on the next battle map to get picked"
-    + " | Friend Room | {5} on {6} | {8} on {9}",
+    + " | Friend Room",
     rpTypes(0),rpTypes(1),rpTypes(2),rpTypes(3),rpTypes(4),rpTypes(5),
     rpTypes(6),rpTypes(7),rpTypes(8),rpTypes(9),rpTypes(10),rpTypes(11),
     rpTypes(12),rpTypes(13),rpTypes(14),rpTypes(15),rpTypes(16),rpTypes(17),
